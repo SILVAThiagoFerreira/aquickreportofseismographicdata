@@ -27,7 +27,7 @@ const COVER_SUMMARY_HEADING_TOP_MM = 67;
 const COVER_SCOPE_TOP_MM = 70;
 const COVER_CONCLUSION_TOP_MM = 97;
 const COVER_CHARTS_TOP_MM = 123;
-const COVER_RECORDS_HEADING_TOP_MM = 199;
+const COVER_RECORDS_HEADING_TOP_MM = 194;
 const COVER_ROW_BASE_TOP_MM = 204.7;
 const APPENDIX_TITLE_TOP_MM = 25;
 const APPENDIX_META_ONE_TOP_MM = 30;
@@ -38,7 +38,7 @@ const ROW_GAP_MM = 3.9;
 const ROW_STEP_MM = ROW_HEIGHT_MM + ROW_GAP_MM;
 const APPENDIX_ROWS_PER_PAGE = Math.max(1, Math.floor((((PAGE_H_MM - 47) - 12) + ROW_GAP_MM) / ROW_STEP_MM));
 const CHART_SVG_W = 360;
-const CHART_SVG_H = 214;
+const CHART_SVG_H = 210;
 
 const COLORS = {
   red: "#E5231B",
@@ -319,7 +319,7 @@ const REPORT_STYLES = `
   right: 0;
   top: 7.2mm;
   bottom: 0;
-  padding: 2.2mm 2.8mm 2.2mm;
+  padding: 1.8mm 2mm 1.8mm;
 }
 
 .report-chart-svg {
@@ -838,7 +838,7 @@ function buildMarkerSvg(kind, x, y, size, color) {
 function buildPsplChartSvg(records) {
   const width = CHART_SVG_W;
   const height = CHART_SVG_H;
-  const margin = { left: 34, right: 12, top: 28, bottom: 28 };
+  const margin = { left: 30, right: 10, top: 20, bottom: 22 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
 
@@ -950,9 +950,9 @@ function buildPsplChartSvg(records) {
   return `
     <svg class="report-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-label="Pressão Sonora x Distância - ABNT NBR 9653:2018">
       ${svgRect(0, 0, width, height, { fill: COLORS.chartWhite })}
-      ${svgText(width / 2, 12, "Pressão Sonora x Distância - ABNT NBR 9653:2018", {
+      ${svgText(width / 2, 11, "Pressão Sonora x Distância - ABNT NBR 9653:2018", {
         "text-anchor": "middle",
-        "font-size": 6.8,
+        "font-size": 6.4,
         fill: "#7A7A7A",
         "font-family": "Helvetica, Arial, sans-serif",
       })}
@@ -1000,7 +1000,7 @@ function buildPsplChartSvg(records) {
       ${svgText(width - 14, height - 6, "N/D = sem distancia no PDF", {
         "text-anchor": "end",
         "dominant-baseline": "middle",
-        "font-size": 4.8,
+        "font-size": 4.6,
         fill: COLORS.chartAxis,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
@@ -1008,14 +1008,14 @@ function buildPsplChartSvg(records) {
         transform: `rotate(-90 14 ${height / 2})`,
         "text-anchor": "middle",
         "dominant-baseline": "middle",
-        "font-size": 6.4,
+        "font-size": 6.0,
         fill: COLORS.chartAxis,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
       ${svgText(width / 2, height - 2, "Distância (m)", {
         "text-anchor": "middle",
         "dominant-baseline": "hanging",
-        "font-size": 6.4,
+        "font-size": 6.0,
         fill: COLORS.chartAxis,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
@@ -1026,7 +1026,7 @@ function buildPsplChartSvg(records) {
 function buildPpvChartSvg(records) {
   const width = CHART_SVG_W;
   const height = CHART_SVG_H;
-  const margin = { left: 34, right: 14, top: 20, bottom: 32 };
+  const margin = { left: 30, right: 12, top: 18, bottom: 26 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
 
@@ -1176,14 +1176,14 @@ function buildPpvChartSvg(records) {
       ${yTickLabels}
       ${svgText(limitLabelX, limitLabelY, "Limite ABNT", {
         "text-anchor": "end",
-        "font-size": 5.6,
+        "font-size": 5.4,
         fill: COLORS.red,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
       ${svgText(width / 2, height - 2, "Frequência (Hz)", {
         "text-anchor": "middle",
         "dominant-baseline": "hanging",
-        "font-size": 6.2,
+        "font-size": 5.9,
         fill: COLORS.chartAxis,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
@@ -1191,7 +1191,7 @@ function buildPpvChartSvg(records) {
         transform: `rotate(-90 14 ${height / 2})`,
         "text-anchor": "middle",
         "dominant-baseline": "middle",
-        "font-size": 6.2,
+        "font-size": 5.9,
         fill: COLORS.chartAxis,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
