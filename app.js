@@ -52,7 +52,6 @@ async function init() {
   bindEvents();
 
   try {
-    ensureLibraries();
     const loadedConfig = await loadConfig();
     state.config = loadedConfig.config;
     state.configSource = loadedConfig.source;
@@ -107,15 +106,6 @@ function bindEvents() {
 function preventDefaults(event) {
   event.preventDefault();
   event.stopPropagation();
-}
-
-function ensureLibraries() {
-  if (!window.pdfjsLib) {
-    throw new Error("PDF.js nao foi carregado. Verifique a conexao com a internet.");
-  }
-  if (!window.jspdf?.jsPDF) {
-    throw new Error("jsPDF nao foi carregado. Verifique a conexao com a internet.");
-  }
 }
 
 async function loadConfig() {

@@ -19,7 +19,7 @@ Aplicação web estática para GitHub Pages. Envie PDFs de sismogramas, o navega
 
 - Publique a partir da raiz do repositório.
 - `.nojekyll` já está habilitado.
-- Os scripts externos são carregados via CDN.
+- As bibliotecas do navegador ficam versionadas no próprio repositório, sem CDN.
 
 ## Legado local
 

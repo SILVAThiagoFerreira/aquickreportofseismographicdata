@@ -20,6 +20,11 @@ import {
   recordOverallCompliant,
 } from "./utils.js";
 
+import { jsPDF } from "./vendor/jspdf/jspdf.es.min.js";
+import { applyPlugin } from "./vendor/jspdf-autotable/jspdf.plugin.autotable.mjs";
+
+applyPlugin(jsPDF);
+
 const PAGE_W = 210;
 const PAGE_H = 297;
 const MARGIN_X = 14;
@@ -44,10 +49,7 @@ function rgb(color) {
 }
 
 function jsPdf() {
-  if (!window.jspdf?.jsPDF) {
-    throw new Error("jsPDF nao foi carregado.");
-  }
-  return window.jspdf.jsPDF;
+  return jsPDF;
 }
 
 function ensureAutoTable(doc) {
@@ -80,7 +82,7 @@ function drawHeader(doc, title, subtitle, logoDataUrl, accentLabel, accentTone =
   doc.setFontSize(7.6);
   const chipWidth = Math.min(Math.max(doc.getTextWidth(accentLabel) + 8, 46), 92);
   doc.setDrawColor(255, 255, 255);
-  doc.roundRect(MARGIN_X, 28, chipWidth, 7, 2.5, 2.5, "S");
+  doc.roundedRect(MARGIN_X, 28, chipWidth, 7, 2.5, 2.5, "S");
   doc.setTextColor(255, 255, 255);
   doc.text(accentLabel, MARGIN_X + 3, 32.8);
 
@@ -96,7 +98,7 @@ function drawHeader(doc, title, subtitle, logoDataUrl, accentLabel, accentTone =
 function drawMetricCard(doc, x, y, w, h, label, value, note, accent = COLORS.red) {
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(...rgb(COLORS.line));
-  doc.roundRect(x, y, w, h, 4, 4, "S");
+  doc.roundedRect(x, y, w, h, 4, 4, "S");
   doc.setFillColor(...rgb(accent));
   doc.rect(x, y, w, 2.2, "F");
 
@@ -125,14 +127,14 @@ function drawStatusChip(doc, x, y, label, tone) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.8);
   const textWidth = doc.getTextWidth(label) + 8;
-  doc.roundRect(x, y, textWidth, 7.4, 3, 3, "F");
+  doc.roundedRect(x, y, textWidth, 7.4, 3, 3, "F");
   doc.text(label, x + 4, y + 5.1);
 }
 
 function drawFieldCard(doc, x, y, w, h, label, value) {
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(...rgb(COLORS.line));
-  doc.roundRect(x, y, w, h, 3.5, 3.5, "S");
+  doc.roundedRect(x, y, w, h, 3.5, 3.5, "S");
 
   doc.setTextColor(...rgb(COLORS.muted));
   doc.setFont("helvetica", "bold");
