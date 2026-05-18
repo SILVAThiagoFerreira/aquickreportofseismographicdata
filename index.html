@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Envie PDFs de sismogramas e gere o relatório pronto no navegador, sem backend.">
+  <meta name="theme-color" content="#0f1218">
+  <title>Report Sismografia Enaex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="background-mesh" aria-hidden="true"></div>
+  <main class="app-shell">
+    <section class="panel hero-panel">
+      <div class="brand-row">
+        <img class="brand-logo" src="./ICONE/Enaex Stronger Bonds Logo.png" alt="Logotipo da Enaex">
+        <div class="brand-copy">
+          <p class="eyebrow">GitHub Pages</p>
+          <h1>Report Sismografia</h1>
+          <p class="brand-subtitle">Upload local, extração no navegador, PDF pronto para baixar.</p>
+        </div>
+      </div>
+
+      <p class="lead">
+        Envie um ou mais sismogramas em PDF e gere o relatório diretamente no navegador.
+        Nenhum arquivo sai do seu computador.
+      </p>
+
+      <div class="dropzone" id="dropzone">
+        <input id="file-input" type="file" accept="application/pdf,.pdf" multiple hidden>
+        <div class="dropzone-icon" aria-hidden="true">PDF</div>
+        <div class="dropzone-copy">
+          <strong>Arraste os PDFs aqui</strong>
+          <span>ou selecione os arquivos para processar localmente.</span>
+        </div>
+        <button class="button button-primary" id="pick-button" type="button">Selecionar PDFs</button>
+      </div>
+
+      <div class="action-row">
+        <a class="button button-primary button-disabled" id="download-link" href="#" download aria-disabled="true">Baixar PDF</a>
+        <button class="button button-secondary" id="clear-button" type="button">Limpar</button>
+      </div>
+
+      <div class="status-line" id="status-line" aria-live="polite">Aguardando PDFs.</div>
+
+      <div class="progress-wrap" id="progress-wrap" hidden>
+        <div class="progress-meta">
+          <span id="progress-label">Processando</span>
+          <span id="progress-count">0/0</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="micro-note">
+        O relatório é montado no navegador com base no `config.json` do repositório.
+      </div>
+    </section>
+
+    <section class="workspace">
+      <section class="panel stats-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Resumo</p>
+            <h2>Visão geral</h2>
+          </div>
+          <div class="badge badge-muted" id="config-badge">Configuração local</div>
+        </div>
+        <div class="stats-grid" id="stats-grid"></div>
+      </section>
+
+      <section class="panel records-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Arquivos</p>
+            <h2>Registros extraídos</h2>
+          </div>
+          <div class="badge badge-muted" id="file-count">0 PDFs</div>
+        </div>
+        <div class="table-scroll">
+          <table class="records-table" aria-label="Registros extraídos">
+            <thead>
+              <tr>
+                <th>Arquivo</th>
+                <th>Local</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>PVS</th>
+                <th>PSPL</th>
+                <th>Situação</th>
+              </tr>
+            </thead>
+            <tbody id="records-body">
+              <tr class="empty-row">
+                <td colspan="7">Selecione PDFs para ver a extração.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel detail-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Detalhe</p>
+            <h2>Último arquivo processado</h2>
+          </div>
+        </div>
+        <div class="detail-list" id="detail-list">
+          <div class="empty-state">
+            O detalhe do último arquivo aparece aqui após o processamento.
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.js";
+    }
+  </script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

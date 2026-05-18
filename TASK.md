@@ -1,0 +1,26 @@
+# TASK.md
+
+## Tarefa Atual
+
+Migração do projeto para GitHub Pages concluída.
+
+## Resultado Esperado
+
+- O site abre em GitHub Pages sem backend.
+- O usuário envia PDFs e recebe um PDF pronto para baixar.
+- A extração acontece localmente no navegador.
+- O limite de vibração continua vindo de `config.json`.
+- O resumo usa até três registros na primeira página e mantém os demais em páginas complementares.
+
+## Status
+
+- Concluída.
+- O fluxo web está estático, roda no navegador e mantém o legado Python apenas como alternativa local.
+
+## Critério de Conclusão
+
+- O site carrega e aceita upload de PDFs.
+- O PDF gerado aparece como download local.
+- A validação falha explicitamente quando não há PDFs válidos.
+- A documentação descreve o fluxo web e o legado Python.
+- Não restam referências quebradas ao fluxo antigo nas docs principais.

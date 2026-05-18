@@ -1,0 +1,210 @@
+{
+  "generated_at": "2026-05-15T15:52:21",
+  "input_dir": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input",
+  "files": [
+    {
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-BARRAGEM DE REJEITOS.pdf",
+      "location": "BARRAGEM DE REJEITOS",
+      "client": "MVV",
+      "user_name": "MINERACAO VALE-VERDE",
+      "serial_number": "UM16386 V 11-0AK Micromate ISEE",
+      "battery_level": "3.6 Volts",
+      "unit_calibration": "July 21, 2025 by VMA LTDA",
+      "file_name": "UM16386_20260515115707.IDFW",
+      "scaled_distance": 13523.1,
+      "distance_m": 4276.4,
+      "charge_kg": 0.1,
+      "raw_scaled_distance": "13523.1 (4276.4 m, 0.1 kg)",
+      "event_date": "2026-05-15",
+      "pspl_db_l": 93.2,
+      "microphone_zc_freq_hz": 5.4,
+      "peak_vector_sum_mm_s": 0.094,
+      "channels": {
+        "Tran": {
+          "axis": "Tran",
+          "ppv_mm_s": 0.063,
+          "zc_freq_hz": 26.99,
+          "event_time": "25.196",
+          "sensor_frequency_hz": 0.002,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 34.388,
+          "compliant": true
+        },
+        "Vert": {
+          "axis": "Vert",
+          "ppv_mm_s": 0.071,
+          "zc_freq_hz": 28.02,
+          "event_time": "154.860",
+          "sensor_frequency_hz": 0.001,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 35.623999999999995,
+          "compliant": true
+        },
+        "Long": {
+          "axis": "Long",
+          "ppv_mm_s": 0.071,
+          "zc_freq_hz": 28.02,
+          "event_time": "25.232",
+          "sensor_frequency_hz": 0.003,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 35.623999999999995,
+          "compliant": true
+        }
+      },
+      "pspl_compliant": true
+    },
+    {
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-COMUNIDADE DE LAGOA DO MEL.pdf",
+      "location": "COMUNIDADE DE LAGOA DO MEL",
+      "client": "MVV",
+      "user_name": "MINERA AO VALE-VERDE",
+      "serial_number": "UM16385 V 11-0BD Micromate ISEE",
+      "battery_level": "3.7 Volts",
+      "unit_calibration": "March 26, 2026 by VMA LTDA",
+      "file_name": "UM16385_20260515115653.IDFW",
+      "scaled_distance": 4662.1,
+      "distance_m": 1474.3,
+      "charge_kg": 0.1,
+      "raw_scaled_distance": "4662.1 (1474.3 m, 0.1 kg)",
+      "event_date": "2026-05-15",
+      "pspl_db_l": 110.3,
+      "microphone_zc_freq_hz": 21.0,
+      "peak_vector_sum_mm_s": 0.061,
+      "channels": {
+        "Tran": {
+          "axis": "Tran",
+          "ppv_mm_s": 0.047,
+          "zc_freq_hz": 24.5,
+          "event_time": "0.598",
+          "sensor_frequency_hz": 0.0,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 31.4,
+          "compliant": true
+        },
+        "Vert": {
+          "axis": "Vert",
+          "ppv_mm_s": 0.055,
+          "zc_freq_hz": 25.83,
+          "event_time": "85.690",
+          "sensor_frequency_hz": 0.0,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 32.995999999999995,
+          "compliant": true
+        },
+        "Long": {
+          "axis": "Long",
+          "ppv_mm_s": 0.055,
+          "zc_freq_hz": 25.83,
+          "event_time": "229.999",
+          "sensor_frequency_hz": 0.0,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 32.995999999999995,
+          "compliant": true
+        }
+      },
+      "pspl_compliant": true
+    },
+    {
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-COMUNIDADE DE PIXILINGA.pdf",
+      "location": "COMUNIDADE DE PIXILINGA",
+      "client": "MVV",
+      "user_name": "MINERACAO VALE VERDE",
+      "serial_number": "UM22299 V 11-0BD Micromate ISEE",
+      "battery_level": "3.5 Volts",
+      "unit_calibration": "February 11, 2026 by VMA LTDA",
+      "file_name": "UM22299_20260515115611.IDFW",
+      "scaled_distance": 8224.7,
+      "distance_m": 2600.9,
+      "charge_kg": 0.1,
+      "raw_scaled_distance": "8224.7 (2600.9 m, 0.1 kg)",
+      "event_date": "2026-05-15",
+      "pspl_db_l": 99.5,
+      "microphone_zc_freq_hz": 4.6,
+      "peak_vector_sum_mm_s": 0.065,
+      "channels": {
+        "Tran": {
+          "axis": "Tran",
+          "ppv_mm_s": 0.055,
+          "zc_freq_hz": 25.83,
+          "event_time": "21.432",
+          "sensor_frequency_hz": 0.0,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 32.995999999999995,
+          "compliant": true
+        },
+        "Vert": {
+          "axis": "Vert",
+          "ppv_mm_s": 0.055,
+          "zc_freq_hz": 25.83,
+          "event_time": "209.213",
+          "sensor_frequency_hz": 0.0,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 32.995999999999995,
+          "compliant": true
+        },
+        "Long": {
+          "axis": "Long",
+          "ppv_mm_s": 0.055,
+          "zc_freq_hz": 25.83,
+          "event_time": "239.487",
+          "sensor_frequency_hz": 0.001,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 32.995999999999995,
+          "compliant": true
+        }
+      },
+      "pspl_compliant": true
+    },
+    {
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-TESTE - INTERMEDIARIO - LM.pdf",
+      "location": "TESTE - INTERMEDIARIO - LM",
+      "client": "MVV",
+      "user_name": "MINERA AO VALE-VERDE",
+      "serial_number": "UM16668 V 11-0BD Micromate ISEE",
+      "battery_level": "3.8 Volts",
+      "unit_calibration": "May 4, 2026 by VMA LTDA",
+      "file_name": "UM16668_20260515114151.IDFW",
+      "scaled_distance": 2507.6,
+      "distance_m": 793.0,
+      "charge_kg": 0.1,
+      "raw_scaled_distance": "2507.6 (793.0 m, 0.1 kg)",
+      "event_date": "2026-05-15",
+      "pspl_db_l": 112.6,
+      "microphone_zc_freq_hz": 21.0,
+      "peak_vector_sum_mm_s": 0.178,
+      "channels": {
+        "Tran": {
+          "axis": "Tran",
+          "ppv_mm_s": 0.134,
+          "zc_freq_hz": 33.54,
+          "event_time": "1129.282",
+          "sensor_frequency_hz": 0.001,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 42.248,
+          "compliant": true
+        },
+        "Vert": {
+          "axis": "Vert",
+          "ppv_mm_s": 0.15,
+          "zc_freq_hz": 34.51,
+          "event_time": "1129.175",
+          "sensor_frequency_hz": 0.001,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 43.41199999999999,
+          "compliant": true
+        },
+        "Long": {
+          "axis": "Long",
+          "ppv_mm_s": 0.173,
+          "zc_freq_hz": 35.78,
+          "event_time": "1129.295",
+          "sensor_frequency_hz": 0.002,
+          "overswing_ratio": null,
+          "reference_limit_mm_s": 44.936,
+          "compliant": true
+        }
+      },
+      "pspl_compliant": true
+    }
+  ]
+}
