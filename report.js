@@ -1,357 +1,1464 @@
 import {
-  CHANNEL_LABELS,
-  CHANNEL_ORDER,
   anyRecordHasVibrationAlert,
   buildEventSlug,
   buildReportFilename,
   formatCharge,
   formatDateBr,
-  formatDateTimeBr,
   formatDecimal,
   formatDistance,
   formatFrequency,
   formatMicrophoneFrequency,
   formatMmS,
   formatPspl,
-  formatRecordCompliance,
   getDateRange,
   getPrimaryClient,
-  recordHasVibrationAlert,
   recordOverallCompliant,
+  CHANNEL_ORDER,
 } from "./utils.js";
 
 import "./vendor/jspdf/jspdf.umd.min.js";
-import { applyPlugin } from "./vendor/jspdf-autotable/jspdf.plugin.autotable.mjs";
 
-applyPlugin(globalThis.jspdf?.jsPDF ?? globalThis.jsPDF);
-
-const PAGE_W = 210;
-const PAGE_H = 297;
-const MARGIN_X = 14;
-const CONTENT_W = PAGE_W - (MARGIN_X * 2);
+const PAGE_W_MM = 210;
+const PAGE_H_MM = 297;
+const CONTENT_X_MM = 10;
+const CONTENT_W_MM = 190;
+const COVER_TITLE_TOP_MM = 22;
+const COVER_SUMMARY_HEADING_TOP_MM = 67;
+const COVER_SCOPE_TOP_MM = 70;
+const COVER_CONCLUSION_TOP_MM = 97;
+const COVER_CHARTS_TOP_MM = 123;
+const COVER_RECORDS_HEADING_TOP_MM = 199;
+const COVER_ROW_BASE_TOP_MM = 204.7;
+const APPENDIX_TITLE_TOP_MM = 25;
+const APPENDIX_META_ONE_TOP_MM = 30;
+const APPENDIX_META_TWO_TOP_MM = 34;
+const APPENDIX_ROW_BASE_TOP_MM = 27.2;
+const ROW_HEIGHT_MM = 19.8;
+const ROW_GAP_MM = 3.9;
+const ROW_STEP_MM = ROW_HEIGHT_MM + ROW_GAP_MM;
+const APPENDIX_ROWS_PER_PAGE = Math.max(1, Math.floor((((PAGE_H_MM - 47) - 12) + ROW_GAP_MM) / ROW_STEP_MM));
+const CHART_SVG_W = 360;
+const CHART_SVG_H = 214;
 
 const COLORS = {
-  red: [229, 35, 27],
-  redSoft: [245, 208, 205],
-  dark: [67, 76, 91],
-  green: [123, 197, 28],
-  greenSoft: [220, 243, 196],
-  light: [241, 241, 241],
-  navy: [28, 34, 64],
-  text: [24, 32, 42],
-  muted: [102, 116, 135],
-  line: [220, 224, 232],
-  softPaper: [248, 250, 252],
+  red: "#E5231B",
+  redSoft: "#F5D0CD",
+  dark: "#434C5B",
+  green: "#7BC51C",
+  greenSoft: "#DCF3C4",
+  light: "#F1F1F1",
+  navy: "#1C2240",
+  text: "#18202A",
+  muted: "#667487",
+  line: "#C9D1DA",
+  softPaper: "#F8FAFC",
+  chartGrid: "#D7D7D7",
+  chartAxis: "#2E2E2E",
+  chartWhite: "#FFFFFF",
+  chartBlue: "#2E86AB",
+  chartBrown: "#434C5B",
+  chartGuide: "#E5231B",
 };
 
-function rgb(color) {
-  return color;
+const REPORT_STYLES = `
+.report-render-root {
+  position: fixed;
+  left: -12000px;
+  top: 0;
+  width: ${PAGE_W_MM}mm;
+  pointer-events: none;
+  user-select: none;
 }
+
+.report-page,
+.report-page * {
+  box-sizing: border-box;
+}
+
+.report-page {
+  position: relative;
+  width: ${PAGE_W_MM}mm;
+  height: ${PAGE_H_MM}mm;
+  overflow: hidden;
+  background: ${COLORS.light};
+  color: ${COLORS.text};
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.report-topline {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1.8mm;
+  background: ${COLORS.red};
+}
+
+.report-logo {
+  position: absolute;
+  left: 8mm;
+  top: 18mm;
+  width: 30mm;
+  height: 9.7mm;
+  object-fit: contain;
+}
+
+.report-corner {
+  position: absolute;
+  width: 16mm;
+  height: 16mm;
+  opacity: 0.95;
+}
+
+.report-corner--topright {
+  right: 7mm;
+  top: 8mm;
+}
+
+.report-corner--bottomleft {
+  left: 6mm;
+  bottom: 6mm;
+}
+
+.report-dna-badge {
+  position: absolute;
+  right: 10mm;
+  bottom: 10.8mm;
+  width: 40mm;
+  height: 8.5mm;
+  border-radius: 2.5mm;
+  background: ${COLORS.navy};
+  border: 0.3mm solid #667487;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.8mm;
+  color: #fff;
+  font-size: 2.9mm;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.report-dna-badge__dna {
+  color: #FDB515;
+}
+
+.report-dna-badge__dot {
+  color: ${COLORS.green};
+}
+
+.report-title-card {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  top: ${COVER_TITLE_TOP_MM}mm;
+  width: ${CONTENT_W_MM}mm;
+  height: 30mm;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.report-title-strip {
+  height: 4mm;
+  background: #C8C8C8;
+}
+
+.report-title-body {
+  padding: 7mm 7mm 2.8mm;
+}
+
+.report-title-text {
+  margin: 0;
+  color: ${COLORS.red};
+  font-size: 4.8mm;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.report-title-client {
+  margin-top: 3.2mm;
+  color: #667487;
+  font-size: 3.6mm;
+  font-weight: 700;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-title-footer {
+  margin-top: 2.6mm;
+  color: #000;
+  font-size: 2.55mm;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.report-heading {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  margin: 0;
+  color: #000;
+  font-size: 5.47mm;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.report-heading--summary {
+  top: ${COVER_SUMMARY_HEADING_TOP_MM}mm;
+}
+
+.report-heading--records {
+  top: ${COVER_RECORDS_HEADING_TOP_MM}mm;
+}
+
+.report-box {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  width: ${CONTENT_W_MM}mm;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.report-box-strip {
+  height: 7.2mm;
+}
+
+.report-box-title {
+  position: absolute;
+  left: 4mm;
+  top: 1.7mm;
+  color: #fff;
+  font-size: 3.45mm;
+  font-weight: 700;
+}
+
+.report-box-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7.2mm;
+  bottom: 0;
+  padding: 3.5mm 4mm 3mm;
+  color: ${COLORS.text};
+  font-size: 2.75mm;
+  line-height: 1.15;
+  overflow: hidden;
+}
+
+.report-box-line {
+  margin: 0 0 1.5mm 0;
+}
+
+.report-box-line--success {
+  color: ${COLORS.green};
+}
+
+.report-box-line--warning {
+  color: ${COLORS.red};
+}
+
+.report-conclusion-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 2.08mm;
+  line-height: 1.15;
+}
+
+.report-conclusion-table td {
+  border: 0.12mm solid ${COLORS.line};
+  padding: 1mm 1.2mm;
+  vertical-align: middle;
+}
+
+.report-conclusion-table td:first-child {
+  width: 31mm;
+  background: #EAF5D7;
+  font-weight: 700;
+}
+
+.report-chart-row {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  top: ${COVER_CHARTS_TOP_MM}mm;
+  width: ${CONTENT_W_MM}mm;
+  height: 62mm;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6mm;
+}
+
+.report-chart-panel {
+  position: relative;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.report-chart-strip {
+  height: 7.2mm;
+  background: ${COLORS.green};
+}
+
+.report-chart-title {
+  position: absolute;
+  left: 4mm;
+  top: 1.7mm;
+  color: #fff;
+  font-size: 3.4mm;
+  font-weight: 700;
+}
+
+.report-chart-body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7.2mm;
+  bottom: 0;
+  padding: 2.2mm 2.8mm 2.2mm;
+}
+
+.report-chart-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.report-record-list {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  top: 0;
+  width: ${CONTENT_W_MM}mm;
+  height: ${PAGE_H_MM}mm;
+}
+
+.report-record-card {
+  position: absolute;
+  left: 0;
+  width: ${CONTENT_W_MM}mm;
+  height: ${ROW_HEIGHT_MM}mm;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.report-record-header {
+  height: 5.7mm;
+  background: ${COLORS.dark};
+  color: #fff;
+  padding: 0 4mm;
+  display: flex;
+  align-items: center;
+  font-size: 3.1mm;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-record-body {
+  position: relative;
+  height: 14.1mm;
+  padding: 1.6mm 4mm 0;
+}
+
+.report-record-table {
+  width: calc(100% - 47mm);
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 1.9mm;
+  color: ${COLORS.text};
+}
+
+.report-record-table td {
+  border: 0.12mm solid ${COLORS.line};
+  padding: 0.7mm 1mm;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-record-table td:nth-child(odd) {
+  background: #EAF5D7;
+  font-weight: 700;
+}
+
+.report-record-badge {
+  position: absolute;
+  right: 4mm;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34mm;
+  height: 6.2mm;
+  border-radius: 3mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2.4mm;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.report-footer-note {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  top: 285mm;
+  color: ${COLORS.dark};
+  font-size: 2.54mm;
+}
+
+.report-appendix-title {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  top: ${APPENDIX_TITLE_TOP_MM}mm;
+  margin: 0;
+  color: ${COLORS.red};
+  font-size: 4.65mm;
+  font-weight: 700;
+}
+
+.report-appendix-meta {
+  position: absolute;
+  left: ${CONTENT_X_MM}mm;
+  margin: 0;
+  color: ${COLORS.muted};
+  font-size: 2.89mm;
+}
+
+.report-appendix-meta--one {
+  top: ${APPENDIX_META_ONE_TOP_MM}mm;
+}
+
+.report-appendix-meta--two {
+  top: ${APPENDIX_META_TWO_TOP_MM}mm;
+}
+`;
 
 function jsPdf() {
   return globalThis.jspdf?.jsPDF ?? globalThis.jsPDF;
 }
 
-function ensureAutoTable(doc) {
-  if (typeof doc.autoTable !== "function") {
-    throw new Error("O plugin AutoTable nao foi carregado.");
+function ensureHtml2Canvas() {
+  const fn = globalThis.html2canvas;
+  if (typeof fn !== "function") {
+    throw new Error("O html2canvas nao foi carregado.");
   }
+  return fn;
 }
 
-function drawBackground(doc, accent = COLORS.red) {
-  doc.setFillColor(...rgb(COLORS.softPaper));
-  doc.rect(0, 0, PAGE_W, PAGE_H, "F");
-  doc.setFillColor(...rgb(COLORS.navy));
-  doc.rect(0, 0, PAGE_W, 38, "F");
-  doc.setFillColor(...rgb(accent));
-  doc.rect(0, 0, PAGE_W, 3, "F");
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function drawHeader(doc, title, subtitle, logoDataUrl, accentLabel, accentTone = COLORS.red) {
-  drawBackground(doc, accentTone);
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text(title, MARGIN_X, 16);
+function svgAttr(value) {
+  return escapeHtml(value).replace(/\"/g, "&quot;");
+}
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.4);
-  doc.text(subtitle, MARGIN_X, 24, { maxWidth: 118 });
+function svgAttrs(attrs = {}) {
+  return Object.entries(attrs)
+    .filter(([, value]) => value != null && value !== false)
+    .map(([name, value]) => `${name}="${svgAttr(value)}"`)
+    .join(" ");
+}
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.6);
-  const chipWidth = Math.min(Math.max(doc.getTextWidth(accentLabel) + 8, 46), 92);
-  doc.setDrawColor(255, 255, 255);
-  doc.roundedRect(MARGIN_X, 28, chipWidth, 7, 2.5, 2.5, "S");
-  doc.setTextColor(255, 255, 255);
-  doc.text(accentLabel, MARGIN_X + 3, 32.8);
+function svgTag(name, attrs = {}, content = "") {
+  const attrText = svgAttrs(attrs);
+  if (!content) {
+    return `<${name}${attrText ? ` ${attrText}` : ""} />`;
+  }
+  return `<${name}${attrText ? ` ${attrText}` : ""}>${content}</${name}>`;
+}
 
-  if (logoDataUrl) {
-    try {
-      doc.addImage(logoDataUrl, "PNG", 166, 8, 30, 18, undefined, "FAST");
-    } catch {
-      // If the image cannot be embedded, fall back to text-only branding.
+function waitForFrame() {
+  return new Promise((resolve) => {
+    const raf = globalThis.requestAnimationFrame ?? ((callback) => globalThis.setTimeout(callback, 16));
+    raf(() => resolve());
+  });
+}
+
+async function waitForImages(root) {
+  const images = Array.from(root.querySelectorAll("img"));
+  if (!images.length) {
+    return;
+  }
+  await Promise.all(images.map(async (img) => {
+    if (img.complete) {
+      return;
+    }
+    if (typeof img.decode === "function") {
+      try {
+        await img.decode();
+        return;
+      } catch {
+        return;
+      }
+    }
+    await new Promise((resolve) => {
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", resolve, { once: true });
+    });
+  }));
+}
+
+function getCaptureScale(config) {
+  const scale = Number(config?.report?.png_scale);
+  if (Number.isFinite(scale) && scale > 0) {
+    return scale;
+  }
+  const fallback = Number(globalThis.devicePixelRatio ?? 1);
+  return Number.isFinite(fallback) && fallback > 0 ? fallback : 1;
+}
+
+function formatGeneratedAt(date) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear());
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function chunkRecords(records, chunkSize) {
+  const output = [];
+  for (let index = 0; index < records.length; index += chunkSize) {
+    output.push(records.slice(index, index + chunkSize));
+  }
+  return output;
+}
+
+function overallBatchCompliant(records) {
+  const states = records.map((record) => recordOverallCompliant(record)).filter((state) => state != null);
+  return Boolean(states.length && states.every(Boolean));
+}
+
+function pickMaxRecord(records, selector) {
+  let bestRecord = null;
+  let bestValue = Number.NEGATIVE_INFINITY;
+  for (const record of records) {
+    const value = selector(record);
+    if (value == null) {
+      continue;
+    }
+    if (bestRecord == null || value > bestValue) {
+      bestRecord = record;
+      bestValue = value;
     }
   }
+  return bestRecord;
 }
 
-function drawMetricCard(doc, x, y, w, h, label, value, note, accent = COLORS.red) {
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(...rgb(COLORS.line));
-  doc.roundedRect(x, y, w, h, 4, 4, "S");
-  doc.setFillColor(...rgb(accent));
-  doc.rect(x, y, w, 2.2, "F");
-
-  doc.setTextColor(...rgb(COLORS.muted));
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.2);
-  doc.text(label.toUpperCase(), x + 4, y + 8);
-
-  doc.setTextColor(...rgb(COLORS.text));
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16.5);
-  doc.text(value, x + 4, y + 16, { maxWidth: w - 8 });
-
-  if (note) {
-    doc.setTextColor(...rgb(COLORS.muted));
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.4);
-    doc.text(note, x + 4, y + h - 4.5, { maxWidth: w - 8 });
+function getMaxChannel(record) {
+  let bestChannel = null;
+  let bestValue = Number.NEGATIVE_INFINITY;
+  for (const axis of CHANNEL_ORDER) {
+    const channel = record?.channels?.[axis];
+    const value = channel?.ppv_mm_s;
+    if (value == null) {
+      continue;
+    }
+    if (bestChannel == null || value > bestValue) {
+      bestChannel = channel;
+      bestValue = value;
+    }
   }
+  return bestChannel;
 }
 
-function drawStatusChip(doc, x, y, label, tone) {
-  const color = tone === "success" ? COLORS.green : tone === "warning" ? [245, 165, 36] : tone === "danger" ? COLORS.red : COLORS.dark;
-  doc.setFillColor(...rgb(color));
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.8);
-  const textWidth = doc.getTextWidth(label) + 8;
-  doc.roundedRect(x, y, textWidth, 7.4, 3, 3, "F");
-  doc.text(label, x + 4, y + 5.1);
+function ellipsis(text, maxChars) {
+  if (text.length <= maxChars) {
+    return text;
+  }
+  return `${text.slice(0, Math.max(0, maxChars - 3))}...`;
 }
 
-function drawFieldCard(doc, x, y, w, h, label, value) {
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(...rgb(COLORS.line));
-  doc.roundedRect(x, y, w, h, 3.5, 3.5, "S");
-
-  doc.setTextColor(...rgb(COLORS.muted));
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(6.8);
-  doc.text(label.toUpperCase(), x + 4, y + 7.3);
-
-  doc.setTextColor(...rgb(COLORS.text));
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.8);
-  const lines = doc.splitTextToSize(String(value ?? "N/D"), w - 8);
-  doc.text(lines, x + 4, y + 13);
+function titleCase(text) {
+  return text
+    .toLocaleLowerCase("pt-BR")
+    .replace(/(^|[\s-])(\p{L})/gu, (_, prefix, letter) => `${prefix}${letter.toLocaleUpperCase("pt-BR")}`);
 }
 
-function drawSummaryTable(doc, records, startY, threshold) {
-  ensureAutoTable(doc);
-  const body = records.map((record) => [
-    record.location ?? "N/D",
-    getPrimaryClient([record]),
-    formatDateBr(record.event_date),
-    formatMmS(record.peak_vector_sum_mm_s),
-    formatPspl(record.pspl_db_l),
-    formatRecordCompliance(record),
-  ]);
+function chartLabel(text) {
+  const source = String(text ?? "").trim();
+  if (!source) {
+    return "N/D";
+  }
+  const label = titleCase(source)
+    .replace(/Comunidade De /g, "Com. ")
+    .replace(/Barragem De /g, "Barr. ");
+  return ellipsis(label, 18);
+}
 
-  doc.autoTable({
-    startY,
-    head: [["Local", "Cliente", "Data", "PVS (mm/s)", "PSPL (dB(L))", "Situação"]],
-    body,
-    theme: "grid",
-    pageBreak: "avoid",
-    styles: {
-      font: "helvetica",
-      fontSize: 7.9,
-      cellPadding: 2.4,
-      textColor: COLORS.text,
-      lineColor: COLORS.line,
-      lineWidth: 0.12,
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: COLORS.dark,
-      textColor: 255,
-      fontStyle: "bold",
-    },
-    alternateRowStyles: {
-      fillColor: [247, 248, 250],
-    },
-    columnStyles: {
-      3: { halign: "right" },
-      4: { halign: "right" },
-      5: { halign: "center" },
-    },
-    didParseCell(data) {
-      if (data.section === "body" && data.column.index === 5) {
-        const status = String(data.cell.raw || "");
-        if (status === "CONFORME") {
-          data.cell.styles.textColor = COLORS.green;
-          data.cell.styles.fontStyle = "bold";
-        } else if (status === "REVISAR") {
-          data.cell.styles.textColor = COLORS.red;
-          data.cell.styles.fontStyle = "bold";
-        }
-      }
-    },
+function frequencyValue(value) {
+  if (value == null) {
+    return 1;
+  }
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text) {
+      return 1;
+    }
+    if (text.startsWith(">")) {
+      return 100;
+    }
+    const parsed = Number(text.replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : 1;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 1;
+}
+
+function ppvForward(values) {
+  const scalarInput = Number.isFinite(Number(values));
+  const array = Array.isArray(values) ? values.map(Number) : [Number(values)];
+  const floor = 0.05;
+  const breakPoint = 0.1;
+  const lowBand = 0.5;
+  const offset = lowBand - breakPoint;
+  const transformed = array.map((value) => {
+    const safe = Math.max(value, floor);
+    if (value <= breakPoint) {
+      return lowBand * (Math.log(safe / floor) / Math.log(breakPoint / floor));
+    }
+    return value + offset;
+  });
+  return scalarInput ? transformed[0] : transformed;
+}
+
+function psplLabelPositions(points, axisMax) {
+  if (!points.length) {
+    return [];
+  }
+
+  const sortedPoints = [...points].sort((left, right) => left.distance - right.distance);
+  const count = sortedPoints.length;
+  const minX = 0.10;
+  const maxX = 0.90;
+  const minGap = 0.22;
+  const ySlotsByCount = {
+    1: [0.82],
+    2: [0.88, 0.76],
+    3: [0.90, 0.80, 0.70],
+  };
+  const ySlots = ySlotsByCount[count] ?? Array.from({ length: count }, (_, index) => 0.90 - ((0.20 * index) / Math.max(count - 1, 1)));
+
+  const desiredX = sortedPoints.map(({ distance }) => {
+    const normalized = distance / Math.max(axisMax, 1);
+    return Math.min(Math.max(normalized, minX), maxX);
   });
 
-  const noteY = doc.lastAutoTable.finalY + 7;
-  const note = anyRecordHasVibrationAlert(records, threshold)
-    ? `Índices de vibração: acima de ${formatDecimal(threshold, 1)} mm/s.`
-    : `Índices de vibração: abaixo de ${formatDecimal(threshold, 1)} mm/s.`;
-  doc.setTextColor(...rgb(COLORS.muted));
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text(note, MARGIN_X, noteY);
-  return noteY;
+  const adjustedX = desiredX.slice();
+  for (let index = 1; index < count; index += 1) {
+    adjustedX[index] = Math.max(adjustedX[index], adjustedX[index - 1] + minGap);
+  }
+
+  const overflow = adjustedX[count - 1] - maxX;
+  if (overflow > 0) {
+    for (let index = 0; index < count; index += 1) {
+      adjustedX[index] -= overflow;
+    }
+    for (let index = count - 2; index >= 0; index -= 1) {
+      adjustedX[index] = Math.min(adjustedX[index], adjustedX[index + 1] - minGap);
+    }
+  }
+
+  const underflow = minX - adjustedX[0];
+  if (underflow > 0) {
+    for (let index = 0; index < count; index += 1) {
+      adjustedX[index] += underflow;
+    }
+  }
+
+  return sortedPoints.map((point, index) => ({
+    ...point,
+    xFrac: Math.min(Math.max(adjustedX[index], minX), maxX),
+    yFrac: ySlots[index],
+  }));
 }
 
-function drawDetailPage(doc, record, pageIndex, totalDetailPages, logoDataUrl, threshold) {
-  const overall = recordOverallCompliant(record);
-  const vibrationAlert = recordHasVibrationAlert(record, threshold);
-  const accentTone = overall === false ? COLORS.red : vibrationAlert ? [245, 165, 36] : COLORS.green;
-  const statusTone = overall == null ? "neutral" : overall ? "success" : "danger";
-  const statusLabel = overall == null ? "STATUS N/D" : overall ? "CONFORME" : "REVISAR";
+function ppvLabelPositions(points) {
+  if (!points.length) {
+    return [];
+  }
 
-  doc.addPage();
-  drawHeader(
-    doc,
-    `DETALHE DO PONTO ${pageIndex + 1}`,
-    `${record.location ?? "N/D"} • ${record.source_pdf ?? "arquivo"}`,
-    logoDataUrl,
-    `PÁGINA ${pageIndex + 2} DE ${totalDetailPages + 1}`,
-    accentTone,
-  );
+  const sortedPoints = [...points].sort((left, right) => left.freq - right.freq);
+  const count = sortedPoints.length;
+  const minX = 0.42;
+  const maxX = 0.82;
+  const minGap = 0.19;
+  const ySlotsByCount = {
+    1: [0.10],
+    2: [0.15, 0.08],
+    3: [0.18, 0.12, 0.06],
+  };
+  const ySlots = ySlotsByCount[count] ?? Array.from({ length: count }, (_, index) => 0.18 - ((0.12 * index) / Math.max(count - 1, 1)));
 
-  drawStatusChip(doc, 152, 13, statusLabel, statusTone);
+  const logMin = Math.log10(1);
+  const logMax = Math.log10(1000);
+  const desiredX = sortedPoints.map(({ freq }) => {
+    const normalized = (Math.log10(Math.max(freq, 1)) - logMin) / (logMax - logMin);
+    return Math.min(Math.max(normalized, minX), maxX);
+  });
 
-  const fields = [
-    ["Cliente", getPrimaryClient([record])],
-    ["Data do evento", formatDateBr(record.event_date)],
-    ["Número de série", record.serial_number ?? "N/D"],
-    ["Bateria", record.battery_level ?? "N/D"],
-    ["Calibração", record.unit_calibration ?? "N/D"],
-    ["Arquivo interno", record.file_name ?? "N/D"],
-    ["Distância escalada", record.scaled_distance == null ? "N/D" : `${formatDistance(record.scaled_distance)} (${record.distance_m == null ? "N/D" : formatDistance(record.distance_m)} m; ${record.charge_kg == null ? "N/D" : formatCharge(record.charge_kg)} kg)`],
-    ["PSPL", record.pspl_db_l == null ? "N/D" : `${formatPspl(record.pspl_db_l)} dB(L)`],
-    ["PVS", record.peak_vector_sum_mm_s == null ? "N/D" : `${formatMmS(record.peak_vector_sum_mm_s)} mm/s`],
-    ["Freq. microfone", formatMicrophoneFrequency(record.microphone_zc_freq_hz)],
+  const adjustedX = desiredX.slice();
+  for (let index = 1; index < count; index += 1) {
+    adjustedX[index] = Math.max(adjustedX[index], adjustedX[index - 1] + minGap);
+  }
+
+  const overflow = adjustedX[count - 1] - maxX;
+  if (overflow > 0) {
+    for (let index = 0; index < count; index += 1) {
+      adjustedX[index] -= overflow;
+    }
+    for (let index = count - 2; index >= 0; index -= 1) {
+      adjustedX[index] = Math.min(adjustedX[index], adjustedX[index + 1] - minGap);
+    }
+  }
+
+  const underflow = minX - adjustedX[0];
+  if (underflow > 0) {
+    for (let index = 0; index < count; index += 1) {
+      adjustedX[index] += underflow;
+    }
+  }
+
+  return sortedPoints.map((point, index) => ({
+    ...point,
+    xFrac: Math.min(Math.max(adjustedX[index], minX), maxX),
+    yFrac: ySlots[index],
+  }));
+}
+
+function hexagonPoints(centerX, centerY, radius) {
+  const points = [];
+  for (let index = 0; index < 6; index += 1) {
+    const angle = (Math.PI / 180) * (60 * index - 30);
+    const x = centerX + (radius * Math.cos(angle));
+    const y = centerY + (radius * Math.sin(angle));
+    points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+  }
+  return points.join(" ");
+}
+
+function buildCornerMotifSvg() {
+  return `
+    <svg class="report-corner" viewBox="0 0 20 20" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="#2A2F46" stroke-width="0.65" opacity="0.95">
+        <polygon points="${hexagonPoints(10, 10, 5.4)}"></polygon>
+        <polygon points="${hexagonPoints(10, 10, 6.35)}" stroke-width="0.5"></polygon>
+      </g>
+    </svg>
+  `;
+}
+
+function svgText(x, y, text, attrs = {}) {
+  return svgTag("text", { x, y, ...attrs }, escapeHtml(text));
+}
+
+function svgLine(x1, y1, x2, y2, attrs = {}) {
+  return svgTag("line", { x1, y1, x2, y2, ...attrs });
+}
+
+function svgRect(x, y, width, height, attrs = {}) {
+  return svgTag("rect", { x, y, width, height, ...attrs });
+}
+
+function svgCircle(cx, cy, radius, attrs = {}) {
+  return svgTag("circle", { cx, cy, r: radius, ...attrs });
+}
+
+function svgPolygon(points, attrs = {}) {
+  return svgTag("polygon", { points, ...attrs });
+}
+
+function buildLabelBoxSvg(x, y, text, color) {
+  const lines = Array.isArray(text) ? text.map((line) => String(line)) : String(text).split(/\n/);
+  const widestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
+  const boxWidth = Math.max(30, Math.min(66, (widestLine * 3.2) + 8));
+  const boxHeight = lines.length > 1 ? 14 : 11;
+  const left = x - (boxWidth / 2);
+  const top = y - (boxHeight / 2);
+  const textLines = lines.map((line, index) => {
+    const lineOffset = lines.length === 1 ? 0.3 : (index === 0 ? -2.2 : 3.2);
+    return svgText(x, y + lineOffset, line, {
+      "text-anchor": "middle",
+      "dominant-baseline": "middle",
+      "font-size": 5.2,
+      fill: color,
+      "font-family": "Helvetica, Arial, sans-serif",
+    });
+  }).join("");
+
+  return `
+    ${svgRect(left, top, boxWidth, boxHeight, {
+      rx: 2,
+      ry: 2,
+      fill: COLORS.chartWhite,
+      stroke: color,
+      "stroke-width": 0.8,
+      opacity: 0.96,
+    })}
+    ${textLines}
+  `;
+}
+
+function buildMarkerSvg(kind, x, y, size, color) {
+  if (kind === "s") {
+    return svgRect(x - size, y - size, size * 2, size * 2, {
+      fill: color,
+      stroke: COLORS.chartWhite,
+      "stroke-width": 0.8,
+    });
+  }
+  if (kind === "^") {
+    return svgPolygon(`${(x).toFixed(2)},${(y - size).toFixed(2)} ${(x - size).toFixed(2)},${(y + size).toFixed(2)} ${(x + size).toFixed(2)},${(y + size).toFixed(2)}`, {
+      fill: color,
+      stroke: COLORS.chartWhite,
+      "stroke-width": 0.8,
+    });
+  }
+  return svgCircle(x, y, size, {
+    fill: color,
+    stroke: COLORS.chartWhite,
+    "stroke-width": 0.8,
+  });
+}
+
+function buildPsplChartSvg(records) {
+  const width = CHART_SVG_W;
+  const height = CHART_SVG_H;
+  const margin = { left: 34, right: 12, top: 28, bottom: 28 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+
+  const knownDistances = records.map((record) => record.distance_m).filter((value) => value != null);
+  const xLimit = Math.max(6000, Math.ceil((Math.max(...knownDistances, 0) / 1000)) * 1000 || 0);
+  const ndPosition = xLimit + 650;
+  const axisMax = ndPosition + 500;
+
+  const xTickValues = [];
+  for (let value = 0; value <= xLimit; value += 1000) {
+    xTickValues.push(value);
+  }
+  xTickValues.push(ndPosition);
+
+  const xTickLabels = xTickValues.map((value) => (value === ndPosition ? "N/D" : String(value)));
+  const yTickValues = [0, 20, 40, 60, 80, 100, 120, 140, 160];
+
+  const xPos = (value) => margin.left + ((value / axisMax) * plotWidth);
+  const yPos = (value) => margin.top + plotHeight - ((value / 160) * plotHeight);
+  const limitY = yPos(134);
+
+  const displayPoints = [];
+  records.forEach((record, recordIndex) => {
+    if (record.pspl_db_l == null) {
+      return;
+    }
+    const markerTypes = ["o", "s", "^"];
+    const colors = [COLORS.chartBrown, COLORS.chartBlue, COLORS.green];
+    const distance = record.distance_m ?? ndPosition;
+    displayPoints.push({
+      distance,
+      value: record.pspl_db_l,
+      label: chartLabel(record.location),
+      color: colors[recordIndex % colors.length],
+      marker: markerTypes[recordIndex % markerTypes.length],
+    });
+  });
+
+  const labels = psplLabelPositions(displayPoints.map((point) => ({
+    distance: point.distance,
+    pspl: point.value,
+    label: point.label,
+    color: point.color,
+  })), axisMax);
+
+  const gridLines = [
+    ...xTickValues.map((value) => svgLine(xPos(value), margin.top, xPos(value), margin.top + plotHeight, {
+      stroke: COLORS.chartGrid,
+      "stroke-dasharray": "1 2",
+      "stroke-width": 0.6,
+    })),
+    ...yTickValues.map((value) => svgLine(margin.left, yPos(value), margin.left + plotWidth, yPos(value), {
+      stroke: COLORS.chartGrid,
+      "stroke-dasharray": "1 2",
+      "stroke-width": 0.6,
+    })),
+  ].join("");
+
+  const tickLabels = xTickValues.map((value, index) => svgText(xPos(value), height - 8, xTickLabels[index], {
+    "text-anchor": "middle",
+    "dominant-baseline": "middle",
+    "font-size": 5.8,
+    fill: COLORS.chartAxis,
+    "font-family": "Helvetica, Arial, sans-serif",
+  })).join("");
+
+  const yTickLabels = yTickValues.map((value) => {
+    const label = String(value);
+    if (value !== 0 && value !== 20 && value !== 40 && value !== 60 && value !== 80 && value !== 100 && value !== 120 && value !== 140 && value !== 160) {
+      return "";
+    }
+    return svgText(22, yPos(value), label, {
+      "text-anchor": "end",
+      "dominant-baseline": "middle",
+      "font-size": 5.8,
+      fill: COLORS.chartAxis,
+      "font-family": "Helvetica, Arial, sans-serif",
+    });
+  }).join("");
+
+  const pointMarkup = displayPoints.map((point) => {
+    const x = xPos(point.distance);
+    const y = yPos(point.value);
+    const marker = buildMarkerSvg(point.marker, x, y, 4.2, point.color);
+    return marker;
+  }).join("");
+
+  const labelMarkup = labels.map((label) => {
+    const point = displayPoints.find((item) => item.distance === label.distance && item.value === label.pspl && item.label === label.label && item.color === label.color) ?? null;
+    if (!point) {
+      return "";
+    }
+    const x = xPos(point.distance);
+    const y = yPos(point.value);
+    const labelX = margin.left + (label.xFrac * plotWidth);
+    const labelY = margin.top + (label.yFrac * plotHeight);
+    return `
+      ${svgLine(x, y, labelX, labelY, {
+        stroke: point.color,
+        "stroke-width": 0.7,
+      })}
+      ${buildLabelBoxSvg(labelX, labelY, [point.label, `${formatPspl(point.value)} dB`], point.color)}
+    `;
+  }).join("");
+
+  const limitBoxLeft = Math.max(margin.left + 4, margin.left + (plotWidth * 0.02));
+  const limitBoxRight = Math.min(width - margin.right - 18, margin.left + (plotWidth * 0.97));
+
+  return `
+    <svg class="report-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-label="Pressão Sonora x Distância - ABNT NBR 9653:2018">
+      ${svgRect(0, 0, width, height, { fill: COLORS.chartWhite })}
+      ${svgText(width / 2, 12, "Pressão Sonora x Distância - ABNT NBR 9653:2018", {
+        "text-anchor": "middle",
+        "font-size": 6.8,
+        fill: "#7A7A7A",
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${gridLines}
+      ${svgLine(margin.left, margin.top, margin.left, margin.top + plotHeight, {
+        stroke: COLORS.chartAxis,
+        "stroke-width": 0.8,
+      })}
+      ${svgLine(margin.left, margin.top + plotHeight, margin.left + plotWidth, margin.top + plotHeight, {
+        stroke: COLORS.chartAxis,
+        "stroke-width": 0.8,
+      })}
+      ${svgLine(margin.left, limitY, margin.left + plotWidth, limitY, {
+        stroke: COLORS.chartBrown,
+        "stroke-width": 1.4,
+      })}
+      ${svgRect(limitBoxLeft - 10, limitY - 5.4, 18, 11, {
+        fill: COLORS.chartWhite,
+        stroke: "#111111",
+        "stroke-width": 0.6,
+      })}
+      ${svgText(limitBoxLeft - 1, limitY, "134", {
+        "text-anchor": "middle",
+        "dominant-baseline": "middle",
+        "font-size": 5.8,
+        fill: "#666666",
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${svgRect(limitBoxRight - 10, limitY - 5.4, 18, 11, {
+        fill: COLORS.chartWhite,
+        stroke: "#111111",
+        "stroke-width": 0.6,
+      })}
+      ${svgText(limitBoxRight - 1, limitY, "134", {
+        "text-anchor": "middle",
+        "dominant-baseline": "middle",
+        "font-size": 5.8,
+        fill: "#666666",
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${pointMarkup}
+      ${labelMarkup}
+      ${tickLabels}
+      ${yTickLabels}
+      ${svgText(width - 14, height - 6, "N/D = sem distancia no PDF", {
+        "text-anchor": "end",
+        "dominant-baseline": "middle",
+        "font-size": 4.8,
+        fill: COLORS.chartAxis,
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${svgText(14, height / 2, "Pressão Acústica (dB)", {
+        transform: `rotate(-90 14 ${height / 2})`,
+        "text-anchor": "middle",
+        "dominant-baseline": "middle",
+        "font-size": 6.4,
+        fill: COLORS.chartAxis,
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${svgText(width / 2, height - 2, "Distância (m)", {
+        "text-anchor": "middle",
+        "dominant-baseline": "hanging",
+        "font-size": 6.4,
+        fill: COLORS.chartAxis,
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+    </svg>
+  `;
+}
+
+function buildPpvChartSvg(records) {
+  const width = CHART_SVG_W;
+  const height = CHART_SVG_H;
+  const margin = { left: 34, right: 14, top: 20, bottom: 32 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+
+  const xTickValues = [1, 4, 10, 15, 40, 100, 1000];
+  const yTickValues = [0.05, 0.1, 1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+  const curveX = [4, 15, 40, 1000];
+  const curveY = [15, 20, 50, 50];
+  const markerTypes = ["o", "s", "^"];
+  const markerColors = [COLORS.chartBrown, COLORS.chartBlue, COLORS.green];
+
+  const xPos = (value) => {
+    const logMin = Math.log10(1);
+    const logMax = Math.log10(1000);
+    const normalized = (Math.log10(Math.max(value, 1)) - logMin) / (logMax - logMin);
+    return margin.left + (normalized * plotWidth);
+  };
+
+  const yForward = (value) => {
+    const floor = 0.05;
+    const breakPoint = 0.1;
+    const lowBand = 0.5;
+    const offset = lowBand - breakPoint;
+    if (value <= breakPoint) {
+      const safe = Math.max(value, floor);
+      return lowBand * (Math.log(safe / floor) / Math.log(breakPoint / floor));
+    }
+    return value + offset;
+  };
+
+  const yMax = yForward(60);
+  const yPos = (value) => margin.top + plotHeight - ((yForward(value) / yMax) * plotHeight);
+
+  const plottedPoints = [];
+  records.forEach((record, index) => {
+    const bestChannel = getMaxChannel(record);
+    const freq = frequencyValue(bestChannel?.zc_freq_hz);
+    const ppv = Math.max(bestChannel?.ppv_mm_s ?? 0.05, 0.05);
+    plottedPoints.push({
+      freq,
+      ppv,
+      label: chartLabel(record.location),
+      color: markerColors[index % markerColors.length],
+      marker: markerTypes[index % markerTypes.length],
+    });
+  });
+
+  const labels = ppvLabelPositions(plottedPoints);
+
+  const gridLines = [
+    ...xTickValues.map((value) => svgLine(xPos(value), margin.top, xPos(value), margin.top + plotHeight, {
+      stroke: COLORS.chartGrid,
+      "stroke-dasharray": "1 2",
+      "stroke-width": 0.6,
+    })),
+    ...yTickValues.map((value) => svgLine(margin.left, yPos(value), margin.left + plotWidth, yPos(value), {
+      stroke: COLORS.chartGrid,
+      "stroke-dasharray": "1 2",
+      "stroke-width": 0.6,
+    })),
+  ].join("");
+
+  const tickLabels = xTickValues.map((value) => svgText(xPos(value), height - 8, String(value), {
+    "text-anchor": "middle",
+    "dominant-baseline": "middle",
+    "font-size": 5.8,
+    fill: COLORS.chartAxis,
+    "font-family": "Helvetica, Arial, sans-serif",
+  })).join("");
+
+  const yTickLabels = yTickValues.map((value) => {
+    let text = "";
+    if (Math.abs(value - 0.05) < 0.0001) {
+      text = "0,05";
+    } else if (Math.abs(value - 0.1) < 0.0001) {
+      text = "0,1";
+    } else {
+      const rounded = Math.round(value);
+      text = String(rounded);
+    }
+    return svgText(22, yPos(value), text, {
+      "text-anchor": "end",
+      "dominant-baseline": "middle",
+      "font-size": 5.8,
+      fill: COLORS.chartAxis,
+      "font-family": "Helvetica, Arial, sans-serif",
+    });
+  }).join("");
+
+  const curve = curveX.map((value, index) => `${xPos(value).toFixed(2)},${yPos(curveY[index]).toFixed(2)}`).join(" ");
+  const curveMarkup = svgTag("polyline", { points: curve, fill: "none", stroke: COLORS.red, "stroke-width": 1.8 });
+
+  const guides = [4, 15, 40].map((value) => svgLine(xPos(value), margin.top, xPos(value), margin.top + plotHeight, {
+    stroke: COLORS.red,
+    "stroke-width": 0.8,
+    "stroke-dasharray": "3 3",
+    opacity: 0.35,
+  })).join("");
+
+  const horizontalGuides = [15, 20, 50].map((value) => svgLine(margin.left, yPos(value), margin.left + plotWidth, yPos(value), {
+    stroke: COLORS.red,
+    "stroke-width": 0.8,
+    "stroke-dasharray": "3 3",
+    opacity: 0.25,
+  })).join("");
+
+  const pointMarkup = plottedPoints.map((point) => buildMarkerSvg(point.marker, xPos(point.freq), yPos(point.ppv), 4.2, point.color)).join("");
+
+  const labelMarkup = labels.map((label) => {
+    const point = plottedPoints.find((item) => item.freq === label.freq && item.ppv === label.ppv && item.label === label.label && item.color === label.color);
+    if (!point) {
+      return "";
+    }
+    const x = xPos(point.freq);
+    const y = yPos(point.ppv);
+    const labelX = margin.left + (label.xFrac * plotWidth);
+    const labelY = margin.top + (label.yFrac * plotHeight);
+    return `
+      ${svgLine(x, y, labelX, labelY, {
+        stroke: point.color,
+        "stroke-width": 0.7,
+      })}
+      ${buildLabelBoxSvg(labelX, labelY, point.label, point.color)}
+    `;
+  }).join("");
+
+  const limitLabelX = width - 12;
+  const limitLabelY = 52;
+
+  return `
+    <svg class="report-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-label="PPV x Limite ABNT">
+      ${svgRect(0, 0, width, height, { fill: COLORS.chartWhite })}
+      ${gridLines}
+      ${guides}
+      ${horizontalGuides}
+      ${svgLine(margin.left, margin.top, margin.left, margin.top + plotHeight, {
+        stroke: COLORS.chartAxis,
+        "stroke-width": 0.8,
+      })}
+      ${svgLine(margin.left, margin.top + plotHeight, margin.left + plotWidth, margin.top + plotHeight, {
+        stroke: COLORS.chartAxis,
+        "stroke-width": 0.8,
+      })}
+      ${curveMarkup}
+      ${pointMarkup}
+      ${labelMarkup}
+      ${tickLabels}
+      ${yTickLabels}
+      ${svgText(limitLabelX, limitLabelY, "Limite ABNT", {
+        "text-anchor": "end",
+        "font-size": 5.6,
+        fill: COLORS.red,
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${svgText(width / 2, height - 2, "Frequência (Hz)", {
+        "text-anchor": "middle",
+        "dominant-baseline": "hanging",
+        "font-size": 6.2,
+        fill: COLORS.chartAxis,
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+      ${svgText(14, height / 2, "PPV (mm/s)", {
+        transform: `rotate(-90 14 ${height / 2})`,
+        "text-anchor": "middle",
+        "dominant-baseline": "middle",
+        "font-size": 6.2,
+        fill: COLORS.chartAxis,
+        "font-family": "Helvetica, Arial, sans-serif",
+      })}
+    </svg>
+  `;
+}
+
+function buildReportChrome(logoDataUrl) {
+  const logo = logoDataUrl ? `<img class="report-logo" src="${escapeHtml(logoDataUrl)}" alt="Logotipo da Enaex">` : "";
+  return `
+    <div class="report-topline"></div>
+    ${logo}
+    ${buildCornerMotifSvg().replace('class="report-corner"', 'class="report-corner report-corner--topright"')}
+    ${buildCornerMotifSvg().replace('class="report-corner"', 'class="report-corner report-corner--bottomleft"')}
+    <div class="report-dna-badge" aria-hidden="true">
+      <span class="report-dna-badge__dna">DNA</span>
+      <span class="report-dna-badge__dot">•</span>
+      <span>ENAEX</span>
+    </div>
+  `;
+}
+
+function buildSummaryBox(records, threshold) {
+  const lines = [
+    `Data do evento: ${getDateRange(records)}`,
+    `Cliente: ${getPrimaryClient(records)}`,
+    `Pontos monitorados: ${records.length} fontes de dados de sismógrafos de engenharia processadas com sucesso.`,
   ];
 
-  const startX = MARGIN_X;
-  const startY = 46;
-  const cardW = 86;
-  const cardH = 20.5;
-  const colGap = 8;
-  const rowGap = 8;
+  if (records.length) {
+    lines.push(
+      anyRecordHasVibrationAlert(records, threshold)
+        ? `⚠️ Índices de vibração: acima de ${formatDecimal(threshold, 1)} mm/s.`
+        : `✅ Índices de vibração: abaixo de ${formatDecimal(threshold, 1)} mm/s.`,
+    );
+  }
 
-  fields.forEach(([label, value], index) => {
-    const col = index % 2;
-    const row = Math.floor(index / 2);
-    const x = startX + (col * (cardW + colGap));
-    const y = startY + (row * (cardH + rowGap));
-    drawFieldCard(doc, x, y, cardW, cardH, label, value);
-  });
+  const lineMarkup = lines.map((line) => {
+    const tone = line.startsWith("⚠️") ? "report-box-line--warning" : line.startsWith("✅") ? "report-box-line--success" : "";
+    return `<div class="report-box-line ${tone}">${escapeHtml(line)}</div>`;
+  }).join("");
 
-  const channelStartY = startY + (5 * (cardH + rowGap)) + 2;
-  doc.setTextColor(...rgb(COLORS.text));
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11.5);
-  doc.text("Canais monitorados", MARGIN_X, channelStartY);
-
-  ensureAutoTable(doc);
-  const body = CHANNEL_ORDER.map((axis) => {
-    const channel = record.channels?.[axis] ?? { axis };
-    return [
-      CHANNEL_LABELS[axis] ?? axis,
-      formatMmS(channel.ppv_mm_s),
-      formatFrequency(channel.zc_freq_hz),
-      formatFrequency(channel.sensor_frequency_hz),
-      channel.overswing_ratio == null ? "N/D" : formatDecimal(channel.overswing_ratio, 3),
-      channel.reference_limit_mm_s == null ? "N/D" : formatMmS(channel.reference_limit_mm_s),
-      channel.compliant == null ? "N/D" : channel.compliant ? "SIM" : "NÃO",
-    ];
-  });
-
-  doc.autoTable({
-    startY: channelStartY + 4,
-    head: [["Eixo", "PPV (mm/s)", "Freq. ZC (Hz)", "Freq. sensor (Hz)", "Overswing", "Limite (mm/s)", "Conforme"]],
-    body,
-    theme: "grid",
-    pageBreak: "avoid",
-    styles: {
-      font: "helvetica",
-      fontSize: 7.7,
-      cellPadding: 2.4,
-      textColor: COLORS.text,
-      lineColor: COLORS.line,
-      lineWidth: 0.12,
-      valign: "middle",
-    },
-    headStyles: {
-      fillColor: COLORS.dark,
-      textColor: 255,
-      fontStyle: "bold",
-    },
-    alternateRowStyles: {
-      fillColor: [247, 248, 250],
-    },
-    columnStyles: {
-      1: { halign: "right" },
-      2: { halign: "right" },
-      3: { halign: "right" },
-      4: { halign: "right" },
-      5: { halign: "right" },
-      6: { halign: "center" },
-    },
-    didParseCell(data) {
-      if (data.section === "body" && data.column.index === 6) {
-        const status = String(data.cell.raw || "");
-        if (status === "SIM") {
-          data.cell.styles.textColor = COLORS.green;
-          data.cell.styles.fontStyle = "bold";
-        } else if (status === "NÃO") {
-          data.cell.styles.textColor = COLORS.red;
-          data.cell.styles.fontStyle = "bold";
-        }
-      }
-    },
-  });
-
-  const footerY = doc.lastAutoTable.finalY + 8;
-  doc.setTextColor(...rgb(COLORS.muted));
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text(`Conformidade geral: ${formatRecordCompliance(record)} | Vibração: ${vibrationAlert ? `acima` : `abaixo`} de ${formatDecimal(threshold, 1)} mm/s`, MARGIN_X, footerY, { maxWidth: CONTENT_W });
-  doc.text("Valores ausentes aparecem como N/D.", MARGIN_X, footerY + 5.2);
+  return `
+    <section class="report-box" style="top: ${COVER_SCOPE_TOP_MM}mm; height: 23mm;">
+      <div class="report-box-strip" style="background: ${COLORS.green};"></div>
+      <div class="report-box-title">Escopo da Campanha</div>
+      <div class="report-box-body">
+        ${lineMarkup}
+      </div>
+    </section>
+  `;
 }
 
-function drawFooter(doc, pageNumber, totalPages, generatedAt) {
-  doc.setDrawColor(...rgb(COLORS.line));
-  doc.line(MARGIN_X, PAGE_H - 12, PAGE_W - MARGIN_X, PAGE_H - 12);
-  doc.setTextColor(...rgb(COLORS.muted));
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.8);
-  doc.text(`Gerado em ${formatDateTimeBr(generatedAt)}`, MARGIN_X, PAGE_H - 6.5);
-  doc.text(`Página ${pageNumber} de ${totalPages}`, PAGE_W - MARGIN_X, PAGE_H - 6.5, { align: "right" });
+function buildConclusionBox(records) {
+  const batchCompliant = overallBatchCompliant(records);
+  const accent = batchCompliant ? COLORS.green : COLORS.red;
+  const complianceText = batchCompliant
+    ? "Todos os pontos abaixo dos limites da ABNT NBR 9653:2018."
+    : "Ocorrência com necessidade de verificação manual frente à ABNT NBR 9653:2018.";
+
+  const highestPspl = pickMaxRecord(records, (record) => record.pspl_db_l);
+  const highestPpv = pickMaxRecord(records, (record) => getMaxChannel(record)?.ppv_mm_s);
+  const highestPvs = pickMaxRecord(records, (record) => record.peak_vector_sum_mm_s);
+
+  const highestPpvChannel = highestPpv ? getMaxChannel(highestPpv) : null;
+  const rows = [
+    ["Conformidade", complianceText],
+    [
+      "Maior PSPL",
+      `${formatPspl(highestPspl?.pspl_db_l)} dB(L) | ${highestPspl?.location ?? "N/D"}`,
+    ],
+    [
+      "Maior PPV",
+      `${formatMmS(highestPpvChannel?.ppv_mm_s)} mm/s | ${highestPpv?.location ?? "N/D"}`,
+    ],
+    [
+      "Maior PVS",
+      `${formatMmS(highestPvs?.peak_vector_sum_mm_s)} mm/s | ${highestPvs?.location ?? "N/D"}`,
+    ],
+  ];
+
+  const tableRows = rows.map(([label, value]) => `
+    <tr>
+      <td>${escapeHtml(label)}</td>
+      <td>${escapeHtml(value)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <section class="report-box" style="top: ${COVER_CONCLUSION_TOP_MM}mm; height: 24mm;">
+      <div class="report-box-strip" style="background: ${accent};"></div>
+      <div class="report-box-title">Conclusão Técnica</div>
+      <div class="report-box-body">
+        <table class="report-conclusion-table">
+          <colgroup>
+            <col style="width: 31mm;">
+            <col>
+          </colgroup>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function buildChartPanel(title, svgMarkup) {
+  return `
+    <article class="report-chart-panel">
+      <div class="report-chart-strip"></div>
+      <div class="report-chart-title">${escapeHtml(title)}</div>
+      <div class="report-chart-body">
+        ${svgMarkup}
+      </div>
+    </article>
+  `;
+}
+
+function buildRecordTable(record) {
+  const getChannel = (axis) => record?.channels?.[axis] ?? { axis };
+  const tran = getChannel("Tran");
+  const vert = getChannel("Vert");
+  const long = getChannel("Long");
+
+  return `
+    <table class="report-record-table">
+      <colgroup>
+        <col style="width: 14mm;">
+        <col style="width: 26mm;">
+        <col style="width: 12mm;">
+        <col style="width: 24mm;">
+        <col style="width: 22mm;">
+        <col>
+      </colgroup>
+      <tbody>
+        <tr>
+          <td>Data</td>
+          <td>${escapeHtml(formatDateBr(record.event_date))}</td>
+          <td>PSPL</td>
+          <td>${escapeHtml(`${formatPspl(record.pspl_db_l)} dB(L)`)}</td>
+          <td>Mic</td>
+          <td>${escapeHtml(`${formatMicrophoneFrequency(record.microphone_zc_freq_hz)} Hz`)}</td>
+        </tr>
+        <tr>
+          <td>PVS</td>
+          <td>${escapeHtml(`${formatMmS(record.peak_vector_sum_mm_s)} mm/s`)}</td>
+          <td>SD</td>
+          <td>${escapeHtml(formatDistance(record.scaled_distance))}</td>
+          <td>Dist / Carga</td>
+          <td>${escapeHtml(`${formatDistance(record.distance_m)} m | ${formatCharge(record.charge_kg)} kg`)}</td>
+        </tr>
+        <tr>
+          <td>Tran</td>
+          <td>${escapeHtml(`${formatMmS(tran.ppv_mm_s)} mm/s | ${formatFrequency(tran.zc_freq_hz)} Hz`)}</td>
+          <td>Vert</td>
+          <td>${escapeHtml(`${formatMmS(vert.ppv_mm_s)} mm/s | ${formatFrequency(vert.zc_freq_hz)} Hz`)}</td>
+          <td>Long</td>
+          <td>${escapeHtml(`${formatMmS(long.ppv_mm_s)} mm/s | ${formatFrequency(long.zc_freq_hz)} Hz`)}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+}
+
+function buildRecordCard(record, topMm, badgeTone) {
+  const compliant = recordOverallCompliant(record) === true;
+  const badgeLabel = compliant ? "CONFORME ABNT" : "VERIFICAR";
+  const tone = compliant ? COLORS.green : COLORS.red;
+
+  return `
+    <section class="report-record-card" style="top: ${topMm}mm;">
+      <div class="report-record-header">${escapeHtml(record.location ?? "N/D")}</div>
+      <div class="report-record-body">
+        ${buildRecordTable(record)}
+        <div class="report-record-badge" style="background: ${badgeTone ?? tone};">${escapeHtml(badgeLabel)}</div>
+      </div>
+    </section>
+  `;
+}
+
+function buildCoverPage(records, threshold, summaryLimit, logoDataUrl) {
+  const summaryRecords = records.slice(0, summaryLimit);
+  const chartPspl = buildPsplChartSvg(records);
+  const chartPpv = buildPpvChartSvg(records);
+  const rowsMarkup = summaryRecords.map((record, index) => {
+    const topMm = COVER_ROW_BASE_TOP_MM - (index * ROW_STEP_MM);
+    return buildRecordCard(record, topMm);
+  }).join("");
+
+  return `
+    <div class="report-page" data-report-page="cover">
+      ${buildReportChrome(logoDataUrl)}
+      <section class="report-title-card">
+        <div class="report-title-strip"></div>
+        <div class="report-title-body">
+          <div class="report-title-text">MONITORAMENTO SISMOGRÁFICO</div>
+          <div class="report-title-client">${escapeHtml(getPrimaryClient(records))}</div>
+          <div class="report-title-footer">${escapeHtml(`${records.length} ponto(s)`)}</div>
+        </div>
+      </section>
+
+      <h2 class="report-heading report-heading--summary">Resumo Executivo</h2>
+      ${buildSummaryBox(records, threshold)}
+      ${buildConclusionBox(records)}
+
+      <section class="report-chart-row">
+        ${buildChartPanel("Pressão Sonora x Distância", chartPspl)}
+        ${buildChartPanel("PPV x Limite ABNT", chartPpv)}
+      </section>
+
+      <h2 class="report-heading report-heading--records">Pontos Monitorados</h2>
+      <div class="report-record-list">
+        ${rowsMarkup}
+      </div>
+
+      <div class="report-footer-note">Base normativa: ABNT NBR 9653:2018.</div>
+    </div>
+  `;
+}
+
+function buildAppendixPage(pageRecords, pageIndex, totalAppendixPages, totalRecords, generatedAt, logoDataUrl) {
+  const rowsMarkup = pageRecords.map((record, index) => {
+    const topMm = APPENDIX_ROW_BASE_TOP_MM + (index * ROW_STEP_MM);
+    return buildRecordCard(record, topMm);
+  }).join("");
+
+  return `
+    <div class="report-page" data-report-page="appendix">
+      ${buildReportChrome(logoDataUrl)}
+      <h2 class="report-appendix-title">REGISTROS COMPLEMENTARES</h2>
+      <div class="report-appendix-meta report-appendix-meta--one">Página ${pageIndex + 2} de ${totalAppendixPages + 1} | ${pageRecords.length} sismograma(s) nesta página</div>
+      <div class="report-appendix-meta report-appendix-meta--two">Total processado: ${totalRecords} sismograma(s) | Gerado em ${escapeHtml(formatGeneratedAt(generatedAt))}</div>
+
+      <div class="report-record-list">
+        ${rowsMarkup}
+      </div>
+
+      <div class="report-footer-note">Continuação do resumo executivo.</div>
+    </div>
+  `;
+}
+
+function buildReportMarkup(records, config, logoDataUrl, generatedAt) {
+  const threshold = config?.report?.vibration_alert_threshold_mm_s ?? 0.8;
+  const summaryLimit = config?.report?.summary_record_limit ?? 3;
+  const appendixChunks = chunkRecords(records.slice(summaryLimit), APPENDIX_ROWS_PER_PAGE);
+
+  const pages = [buildCoverPage(records, threshold, summaryLimit, logoDataUrl)];
+  appendixChunks.forEach((pageRecords, pageIndex) => {
+    pages.push(buildAppendixPage(pageRecords, pageIndex, appendixChunks.length, records.length, generatedAt, logoDataUrl));
+  });
+
+  return pages.join("");
+}
+
+function mountReportRoot(records, config, logoDataUrl, generatedAt) {
+  const root = document.createElement("div");
+  root.className = "report-render-root";
+  root.setAttribute("aria-hidden", "true");
+  root.innerHTML = `<style>${REPORT_STYLES}</style>${buildReportMarkup(records, config, logoDataUrl, generatedAt)}`;
+  document.body.appendChild(root);
+  return root;
 }
 
 export async function buildReportBlob(records, config, logoDataUrl) {
   const generatedAt = new Date();
-  const threshold = config?.report?.vibration_alert_threshold_mm_s ?? 0.8;
-  const summaryLimit = config?.report?.summary_record_limit ?? 3;
-  const client = getPrimaryClient(records);
-  const dateRange = getDateRange(records);
-  const filename = buildReportFilename(records, generatedAt);
-  const vibrationAlert = anyRecordHasVibrationAlert(records, threshold);
-  const vibrationLevelLabel = vibrationAlert ? "ACIMA" : "ABAIXO";
-
   const PDF = jsPdf();
   const doc = new PDF({ unit: "mm", format: "a4", orientation: "portrait" });
   doc.setProperties({
@@ -361,95 +1468,40 @@ export async function buildReportBlob(records, config, logoDataUrl) {
     creator: "GitHub Pages",
   });
 
-  const summaryRecords = records.slice(0, summaryLimit);
-  const extraRecords = records.slice(summaryLimit);
+  const captureScale = getCaptureScale(config);
+  const html2canvas = ensureHtml2Canvas();
+  const root = mountReportRoot(records, config, logoDataUrl, generatedAt);
+  const pages = Array.from(root.querySelectorAll(".report-page"));
 
-  drawHeader(
-    doc,
-    "MONITORAMENTO SISMOGRÁFICO",
-    `Processamento local no navegador • ${client} • ${dateRange}`,
-    logoDataUrl,
-    `VIBRAÇÃO ${vibrationLevelLabel}`,
-    vibrationAlert ? [245, 165, 36] : COLORS.green,
-  );
+  try {
+    await waitForImages(root);
+    await waitForFrame();
+    await waitForFrame();
 
-  const metricY = 46;
-  const metricW = (CONTENT_W - 10.5) / 4;
-  const metrics = [
-    {
-      label: "PDFs",
-      value: String(records.length),
-      note: `Resumo com até ${summaryLimit} registros.`,
-      accent: COLORS.red,
-    },
-    {
-      label: "Conformes",
-      value: String(records.filter((record) => recordOverallCompliant(record) === true).length),
-      note: "Conformidade NBR 9653:2018.",
-      accent: COLORS.green,
-    },
-    {
-      label: "PVS máximo",
-      value: records.length ? `${formatMmS(Math.max(...records.map((record) => record.peak_vector_sum_mm_s ?? 0)))} mm/s` : "N/D",
-      note: "Maior pico vetorial detectado.",
-      accent: COLORS.navy,
-    },
-    {
-      label: "Vibração",
-      value: vibrationLevelLabel,
-      note: `Limite configurado em ${formatDecimal(threshold, 1)} mm/s.`,
-      accent: vibrationAlert ? [245, 165, 36] : COLORS.green,
-    },
-  ];
+    for (let index = 0; index < pages.length; index += 1) {
+      const page = pages[index];
+      const canvas = await html2canvas(page, {
+        scale: captureScale,
+        backgroundColor: COLORS.light,
+        useCORS: true,
+        allowTaint: false,
+        scrollX: 0,
+        scrollY: 0,
+      });
 
-  metrics.forEach((metric, index) => {
-    const x = MARGIN_X + (index * (metricW + 3.5));
-    drawMetricCard(doc, x, metricY, metricW, 24, metric.label, metric.value, metric.note, metric.accent);
-  });
+      if (index > 0) {
+        doc.addPage();
+      }
+      doc.addImage(canvas, "PNG", 0, 0, PAGE_W_MM, PAGE_H_MM, undefined, "FAST");
+    }
 
-  const summaryTextY = 79;
-  doc.setTextColor(...rgb(COLORS.text));
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11.8);
-  doc.text("Resumo executivo", MARGIN_X, summaryTextY);
-
-  doc.setTextColor(...rgb(COLORS.muted));
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.4);
-  const summaryWord = summaryRecords.length === 1 ? "registro" : "registros";
-  const extraWord = extraRecords.length === 1 ? "registro complementar" : "registros complementares";
-  doc.text(
-    extraRecords.length
-      ? `Os ${summaryRecords.length} primeiros ${summaryWord} aparecem na primeira página; ${extraRecords.length} ${extraWord} seguem em páginas complementares.`
-      : "Todos os registros cabem na primeira página.",
-    MARGIN_X,
-    summaryTextY + 5.2,
-    { maxWidth: CONTENT_W },
-  );
-
-  const tableEndY = drawSummaryTable(doc, summaryRecords, 90, threshold);
-
-  if (extraRecords.length) {
-    doc.setTextColor(...rgb(COLORS.muted));
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(8.1);
-    doc.text(`+ ${extraRecords.length} ${extraWord} nas páginas seguintes.`, MARGIN_X, tableEndY + 7);
+    return {
+      blob: doc.output("blob"),
+      filename: buildReportFilename(records, generatedAt),
+      generatedAt,
+      eventSlug: buildEventSlug(records, generatedAt),
+    };
+  } finally {
+    root.remove();
   }
-
-  extraRecords.forEach((record, index) => {
-    drawDetailPage(doc, record, index, extraRecords.length, logoDataUrl, threshold);
-  });
-
-  const totalPages = doc.getNumberOfPages();
-  for (let page = 1; page <= totalPages; page += 1) {
-    doc.setPage(page);
-    drawFooter(doc, page, totalPages, generatedAt);
-  }
-
-  return {
-    blob: doc.output("blob"),
-    filename,
-    generatedAt,
-    eventSlug: buildEventSlug(records, generatedAt),
-  };
 }

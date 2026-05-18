@@ -23,6 +23,7 @@
   "homepage": "https://github.com/SILVAThiagoFerreira/aquickreportofseismographicdata#readme",
   "dependencies": {
     "esbuild": "^0.28.0",
+    "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "pdfjs-dist": "^5.7.284"

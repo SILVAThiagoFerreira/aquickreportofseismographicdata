@@ -2,7 +2,7 @@
 
 ## Tarefa Atual
 
-Migração do projeto para GitHub Pages concluída.
+Ajuste do relatório web para espelhar o layout do legado Python.
 
 ## Resultado Esperado
 
@@ -11,10 +11,11 @@ Migração do projeto para GitHub Pages concluída.
 - A extração acontece localmente no navegador.
 - O limite de vibração continua vindo de `config.json`.
 - O resumo usa até três registros na primeira página e mantém os demais em páginas complementares.
+- O PDF é montado no navegador por captura HTML/SVG com bibliotecas locais.
 
 ## Status
 
-- Concluída.
+- Em validação.
 - O fluxo web está estático, roda no navegador e mantém o legado Python apenas como alternativa local.
 
 ## Critério de Conclusão
