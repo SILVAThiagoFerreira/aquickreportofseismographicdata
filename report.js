@@ -23,7 +23,7 @@ const PAGE_H_MM = 297;
 const CONTENT_X_MM = 10;
 const CONTENT_W_MM = 190;
 const COVER_TITLE_TOP_MM = 22;
-const COVER_SUMMARY_HEADING_TOP_MM = 67;
+const COVER_SUMMARY_HEADING_TOP_MM = 62;
 const COVER_SCOPE_TOP_MM = 70;
 const COVER_CONCLUSION_TOP_MM = 97;
 const COVER_CHARTS_TOP_MM = 123;
@@ -32,7 +32,8 @@ const COVER_ROW_BASE_TOP_MM = 204.7;
 const APPENDIX_TITLE_TOP_MM = 25;
 const APPENDIX_META_ONE_TOP_MM = 30;
 const APPENDIX_META_TWO_TOP_MM = 34;
-const APPENDIX_ROW_BASE_TOP_MM = 27.2;
+const APPENDIX_HEADER_X_MM = 43;
+const APPENDIX_ROW_BASE_TOP_MM = 45;
 const ROW_HEIGHT_MM = 19.8;
 const ROW_GAP_MM = 3.9;
 const ROW_STEP_MM = ROW_HEIGHT_MM + ROW_GAP_MM;
@@ -416,7 +417,7 @@ const REPORT_STYLES = `
 
 .report-appendix-title {
   position: absolute;
-  left: ${CONTENT_X_MM}mm;
+  left: ${APPENDIX_HEADER_X_MM}mm;
   top: ${APPENDIX_TITLE_TOP_MM}mm;
   margin: 0;
   color: ${COLORS.red};
@@ -426,7 +427,7 @@ const REPORT_STYLES = `
 
 .report-appendix-meta {
   position: absolute;
-  left: ${CONTENT_X_MM}mm;
+  left: ${APPENDIX_HEADER_X_MM}mm;
   margin: 0;
   color: ${COLORS.muted};
   font-size: 2.89mm;
@@ -1378,7 +1379,7 @@ function buildCoverPage(records, threshold, summaryLimit, logoDataUrl) {
   const chartPspl = buildPsplChartSvg(records);
   const chartPpv = buildPpvChartSvg(records);
   const rowsMarkup = summaryRecords.map((record, index) => {
-    const topMm = COVER_ROW_BASE_TOP_MM - (index * ROW_STEP_MM);
+    const topMm = COVER_ROW_BASE_TOP_MM + (index * ROW_STEP_MM);
     return buildRecordCard(record, topMm);
   }).join("");
 
