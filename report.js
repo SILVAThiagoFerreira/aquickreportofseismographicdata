@@ -20,10 +20,10 @@ import {
   recordOverallCompliant,
 } from "./utils.js";
 
-import { jsPDF } from "./vendor/jspdf/jspdf.es.min.js";
+import "./vendor/jspdf/jspdf.umd.min.js";
 import { applyPlugin } from "./vendor/jspdf-autotable/jspdf.plugin.autotable.mjs";
 
-applyPlugin(jsPDF);
+applyPlugin(globalThis.jspdf?.jsPDF ?? globalThis.jsPDF);
 
 const PAGE_W = 210;
 const PAGE_H = 297;
@@ -49,7 +49,7 @@ function rgb(color) {
 }
 
 function jsPdf() {
-  return jsPDF;
+  return globalThis.jspdf?.jsPDF ?? globalThis.jsPDF;
 }
 
 function ensureAutoTable(doc) {
