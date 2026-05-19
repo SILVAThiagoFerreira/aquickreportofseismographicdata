@@ -22,7 +22,7 @@ const PAGE_W_MM = 210;
 const PAGE_H_MM = 297;
 const CONTENT_X_MM = 10;
 const CONTENT_W_MM = 190;
-const COVER_TITLE_TOP_MM = 22;
+const COVER_TITLE_TOP_MM = 29;
 const COVER_SUMMARY_HEADING_TOP_MM = 62;
 const COVER_SCOPE_TOP_MM = 70;
 const COVER_CONCLUSION_TOP_MM = 97;
@@ -107,6 +107,7 @@ const REPORT_STYLES = `
   width: 30mm;
   height: 9.7mm;
   object-fit: contain;
+  z-index: 2;
 }
 
 .report-corner {
@@ -163,6 +164,7 @@ const REPORT_STYLES = `
   border-radius: 4px;
   box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  z-index: 1;
 }
 
 .report-title-strip {
@@ -646,90 +648,231 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function positionLabelNearPoint(pointX, pointY, index, count, options = {}) {
-  const {
-    minX = 0.08,
-    maxX = 0.92,
-    minY = 0.08,
-    maxY = 0.92,
-    xOffsetNear = 0.06,
-    xOffsetFar = 0.12,
-    yOffsetNear = 0.08,
-    yOffsetFar = 0.08,
-    xSpread = 0.01,
-    ySpread = 0.02,
-  } = options;
-
-  const spread = index - ((count - 1) / 2);
-  const xOffset = pointX < 0.5 ? xOffsetNear : -xOffsetFar;
-  const yOffset = pointY < 0.5 ? yOffsetNear : -yOffsetFar;
-
+function measureLabelBox(lines) {
+  const widestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
   return {
-    xFrac: clamp(pointX + xOffset + (spread * xSpread), minX, maxX),
-    yFrac: clamp(pointY + yOffset + (spread * ySpread), minY, maxY),
+    boxWidth: Math.max(20, Math.min(50, (widestLine * 2.8) + 6)),
+    boxHeight: lines.length > 1 ? 12 : 9,
   };
 }
 
-function psplLabelPositions(points, axisMax) {
-  if (!points.length) {
-    return [];
-  }
-
-  const sortedPoints = [...points].sort((left, right) => left.distance - right.distance);
-  const count = sortedPoints.length;
-  const safeAxisMax = Math.max(axisMax, 1);
-
-  return sortedPoints.map((point, index) => {
-    const pointX = clamp(point.distance / safeAxisMax, 0.08, 0.92);
-    const pointY = clamp(1 - (point.pspl / 160), 0.08, 0.92);
-    return {
-      ...point,
-      ...positionLabelNearPoint(pointX, pointY, index, count, {
-        minX: 0.08,
-        maxX: 0.92,
-        minY: 0.10,
-        maxY: 0.90,
-        xOffsetNear: 0.06,
-        xOffsetFar: 0.10,
-        yOffsetNear: 0.08,
-        yOffsetFar: 0.08,
-        xSpread: 0.012,
-        ySpread: 0.018,
-      }),
-    };
-  });
+function rectFromCenter(centerX, centerY, boxWidth, boxHeight) {
+  return {
+    left: centerX - (boxWidth / 2),
+    top: centerY - (boxHeight / 2),
+    right: centerX + (boxWidth / 2),
+    bottom: centerY + (boxHeight / 2),
+  };
 }
 
-function ppvLabelPositions(points) {
+function rectsOverlap(left, right, padding = 0.008) {
+  return !(
+    (left.right + padding) <= right.left
+    || (left.left - padding) >= right.right
+    || (left.bottom + padding) <= right.top
+    || (left.top - padding) >= right.bottom
+  );
+}
+
+function rectIntersectionArea(left, right) {
+  if (!rectsOverlap(left, right, 0)) {
+    return 0;
+  }
+
+  const width = Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left));
+  const height = Math.max(0, Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top));
+  return width * height;
+}
+
+function distancePointToRect(pointX, pointY, rect) {
+  const dx = Math.max(rect.left - pointX, 0, pointX - rect.right);
+  const dy = Math.max(rect.top - pointY, 0, pointY - rect.bottom);
+  return Math.hypot(dx, dy);
+}
+
+function connectorPointToRect(pointX, pointY, rect) {
+  const centerX = (rect.left + rect.right) / 2;
+  const centerY = (rect.top + rect.bottom) / 2;
+  const vx = pointX - centerX;
+  const vy = pointY - centerY;
+  const halfWidth = Math.max((rect.right - rect.left) / 2, 0.0001);
+  const halfHeight = Math.max((rect.bottom - rect.top) / 2, 0.0001);
+  const scale = 1 / Math.max(Math.abs(vx) / halfWidth, Math.abs(vy) / halfHeight, 0.0001);
+
+  return {
+    x: centerX + (vx * scale),
+    y: centerY + (vy * scale),
+  };
+}
+
+function buildLabelCandidates(pointX, pointY, boxWidthFrac, boxHeightFrac, index) {
+  const horizontalBias = pointX <= 0.5 ? 1 : -1;
+  const verticalBias = pointY <= 0.5 ? 1 : -1;
+  const directions = [
+    { dx: horizontalBias, dy: verticalBias },
+    { dx: horizontalBias, dy: 0 },
+    { dx: 0, dy: verticalBias },
+    { dx: horizontalBias, dy: -verticalBias },
+    { dx: -horizontalBias, dy: verticalBias },
+    { dx: -horizontalBias, dy: 0 },
+    { dx: 0, dy: -verticalBias },
+    { dx: -horizontalBias, dy: -verticalBias },
+  ];
+  const tiers = [1, 1.45, 2.0];
+  const offsetXStep = Math.max(0.008, boxWidthFrac * 0.05);
+  const offsetYStep = Math.max(0.008, boxHeightFrac * 0.05);
+  const candidates = [];
+
+  tiers.forEach((tier) => {
+    const gapX = Math.max(0.02, boxWidthFrac * 0.22) * tier;
+    const gapY = Math.max(0.02, boxHeightFrac * 0.34) * tier;
+
+    directions.forEach((direction) => {
+      const offsetX = direction.dx === 0
+        ? (((index % 2) === 0 ? -1 : 1) * offsetXStep * tier)
+        : direction.dx * ((boxWidthFrac / 2) + gapX);
+      const offsetY = direction.dy === 0
+        ? ((((index % 3) - 1) * offsetYStep) * tier)
+        : direction.dy * ((boxHeightFrac / 2) + gapY);
+
+      candidates.push({
+        x: pointX + offsetX,
+        y: pointY + offsetY,
+      });
+    });
+  });
+
+  return candidates;
+}
+
+function placeChartLabels(labelSpecs) {
+  const ordered = [...labelSpecs].sort((left, right) => (
+    (right.boxWidthFrac * right.boxHeightFrac) - (left.boxWidthFrac * left.boxHeightFrac)
+    || left.index - right.index
+  ));
+  const placed = [];
+
+  ordered.forEach((spec) => {
+    const candidates = buildLabelCandidates(spec.pointXFrac, spec.pointYFrac, spec.boxWidthFrac, spec.boxHeightFrac, spec.index);
+    const minCenterX = (spec.boxWidthFrac / 2) + 0.015;
+    const maxCenterX = 1 - minCenterX;
+    const minCenterY = (spec.boxHeightFrac / 2) + 0.015;
+    const maxCenterY = 1 - minCenterY;
+    let best = null;
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    candidates.forEach((candidate) => {
+      const centerX = clamp(candidate.x, minCenterX, maxCenterX);
+      const centerY = clamp(candidate.y, minCenterY, maxCenterY);
+      const rect = rectFromCenter(centerX, centerY, spec.boxWidthFrac, spec.boxHeightFrac);
+      const pointDistance = distancePointToRect(spec.pointXFrac, spec.pointYFrac, rect);
+
+      if (pointDistance < spec.minPointGap) {
+        return;
+      }
+
+      const overlapArea = placed.reduce((sum, item) => sum + rectIntersectionArea(rect, item.rect), 0);
+      const overlapCount = placed.reduce((count, item) => count + (rectsOverlap(rect, item.rect) ? 1 : 0), 0);
+      const distance = Math.hypot(centerX - spec.pointXFrac, centerY - spec.pointYFrac);
+      const edgeDistance = Math.min(centerX - minCenterX, maxCenterX - centerX, centerY - minCenterY, maxCenterY - centerY);
+      const score = (overlapCount * 1000) + (overlapArea * 5000) + (distance * 100) - (edgeDistance * 2);
+
+      if (score < bestScore) {
+        best = { centerX, centerY, rect };
+        bestScore = score;
+      }
+    });
+
+    if (!best) {
+      const fallbackX = clamp(spec.pointXFrac + (spec.pointXFrac < 0.5 ? 0.08 : -0.08), minCenterX, maxCenterX);
+      const fallbackY = clamp(spec.pointYFrac + (spec.pointYFrac < 0.5 ? 0.08 : -0.08), minCenterY, maxCenterY);
+      best = {
+        centerX: fallbackX,
+        centerY: fallbackY,
+        rect: rectFromCenter(fallbackX, fallbackY, spec.boxWidthFrac, spec.boxHeightFrac),
+      };
+    }
+
+    const connector = connectorPointToRect(spec.pointXFrac, spec.pointYFrac, best.rect);
+    placed.push({
+      ...spec,
+      xFrac: best.centerX,
+      yFrac: best.centerY,
+      connectorXFrac: connector.x,
+      connectorYFrac: connector.y,
+      rect: best.rect,
+    });
+  });
+
+  return placed.sort((left, right) => left.index - right.index);
+}
+
+function psplLabelPositions(points, axisMax, layout = {}) {
   if (!points.length) {
     return [];
   }
 
+  const plotWidth = layout.plotWidth ?? 320;
+  const plotHeight = layout.plotHeight ?? 168;
+  const sortedPoints = [...points].sort((left, right) => left.distance - right.distance);
+  const safeAxisMax = Math.max(axisMax, 1);
+
+  const labelSpecs = sortedPoints.map((point, index) => {
+    const lines = [point.label, `${formatPspl(point.pspl)} dB`];
+    const { boxWidth, boxHeight } = measureLabelBox(lines);
+    return {
+      index,
+      pointXFrac: clamp(point.distance / safeAxisMax, 0.06, 0.94),
+      pointYFrac: clamp(1 - (point.pspl / 160), 0.08, 0.92),
+      boxWidth,
+      boxHeight,
+      boxWidthFrac: boxWidth / Math.max(plotWidth, 1),
+      boxHeightFrac: boxHeight / Math.max(plotHeight, 1),
+      lines,
+      color: point.color,
+      label: point.label,
+      pspl: point.pspl,
+      distance: point.distance,
+      minPointGap: Math.max(0.012, 4.2 / Math.max(Math.min(plotWidth, plotHeight), 1)),
+    };
+  });
+
+  return placeChartLabels(labelSpecs);
+}
+
+function ppvLabelPositions(points, layout = {}) {
+  if (!points.length) {
+    return [];
+  }
+
+  const plotWidth = layout.plotWidth ?? 320;
+  const plotHeight = layout.plotHeight ?? 168;
   const sortedPoints = [...points].sort((left, right) => left.freq - right.freq);
-  const count = sortedPoints.length;
   const logMin = Math.log10(1);
   const logMax = Math.log10(1000);
   const yMax = ppvForward(60);
 
-  return sortedPoints.map((point, index) => {
-    const pointX = clamp((Math.log10(Math.max(point.freq, 1)) - logMin) / (logMax - logMin), 0.08, 0.92);
-    const pointY = clamp(1 - (ppvForward(point.ppv) / yMax), 0.08, 0.92);
+  const labelSpecs = sortedPoints.map((point, index) => {
+    const lines = [point.label];
+    const { boxWidth, boxHeight } = measureLabelBox(lines);
     return {
-      ...point,
-      ...positionLabelNearPoint(pointX, pointY, index, count, {
-        minX: 0.08,
-        maxX: 0.92,
-        minY: 0.08,
-        maxY: 0.92,
-        xOffsetNear: 0.06,
-        xOffsetFar: 0.12,
-        yOffsetNear: 0.08,
-        yOffsetFar: 0.08,
-        xSpread: 0.010,
-        ySpread: 0.016,
-      }),
+      index,
+      pointXFrac: clamp((Math.log10(Math.max(point.freq, 1)) - logMin) / (logMax - logMin), 0.06, 0.94),
+      pointYFrac: clamp(1 - (ppvForward(point.ppv) / yMax), 0.08, 0.92),
+      boxWidth,
+      boxHeight,
+      boxWidthFrac: boxWidth / Math.max(plotWidth, 1),
+      boxHeightFrac: boxHeight / Math.max(plotHeight, 1),
+      lines,
+      color: point.color,
+      label: point.label,
+      freq: point.freq,
+      ppv: point.ppv,
+      minPointGap: Math.max(0.012, 4.2 / Math.max(Math.min(plotWidth, plotHeight), 1)),
     };
   });
+
+  return placeChartLabels(labelSpecs);
 }
 
 function hexagonPoints(centerX, centerY, radius) {
@@ -781,19 +924,17 @@ function svgPolygon(points, attrs = {}) {
   return svgTag("polygon", { points, ...attrs });
 }
 
-function buildLabelBoxSvg(x, y, text, color) {
+function buildLabelBoxSvg(x, y, text, color, metrics = null) {
   const lines = Array.isArray(text) ? text.map((line) => String(line)) : String(text).split(/\n/);
-  const widestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
-  const boxWidth = Math.max(20, Math.min(50, (widestLine * 2.8) + 6)); // Reduced width
-  const boxHeight = lines.length > 1 ? 12 : 9; // Reduced height
+  const { boxWidth, boxHeight } = metrics ?? measureLabelBox(lines);
   const left = x - (boxWidth / 2);
   const top = y - (boxHeight / 2);
   const textLines = lines.map((line, index) => {
-    const lineOffset = lines.length === 1 ? 0 : (index === 0 ? -2.0 : 2.5); // Adjusted offsets
+    const lineOffset = lines.length === 1 ? 0 : (index === 0 ? -2.0 : 2.5);
     return svgText(x, y + lineOffset, line, {
       "text-anchor": "middle",
       "dominant-baseline": "middle",
-      "font-size": 4.5, // Slightly smaller font
+      "font-size": 4.5,
       fill: color,
       "font-family": "Helvetica, Arial, sans-serif",
     });
@@ -881,7 +1022,7 @@ function buildPsplChartSvg(records) {
     pspl: point.value,
     label: point.label,
     color: point.color,
-  })), axisMax);
+  })), axisMax, { plotWidth, plotHeight });
 
   const gridLines = [
     ...xTickValues.map((value) => svgLine(xPos(value), margin.top, xPos(value), margin.top + plotHeight, {
@@ -926,20 +1067,16 @@ function buildPsplChartSvg(records) {
   }).join("");
 
   const labelMarkup = labels.map((label) => {
-    const point = displayPoints.find((item) => item.distance === label.distance && item.value === label.pspl && item.label === label.label && item.color === label.color) ?? null;
-    if (!point) {
-      return "";
-    }
-    const x = xPos(point.distance);
-    const y = yPos(point.value);
+    const x = margin.left + (label.pointXFrac * plotWidth);
+    const y = margin.top + (label.pointYFrac * plotHeight);
     const labelX = margin.left + (label.xFrac * plotWidth);
     const labelY = margin.top + (label.yFrac * plotHeight);
     return `
-      ${svgLine(x, y, labelX, labelY, {
-        stroke: point.color,
+      ${svgLine(x, y, margin.left + (label.connectorXFrac * plotWidth), margin.top + (label.connectorYFrac * plotHeight), {
+        stroke: label.color,
         "stroke-width": 0.7,
       })}
-      ${buildLabelBoxSvg(labelX, labelY, [point.label, `${formatPspl(point.value)} dB`], point.color)}
+      ${buildLabelBoxSvg(labelX, labelY, label.lines, label.color, label)}
     `;
   }).join("");
 
@@ -1072,7 +1209,7 @@ function buildPpvChartSvg(records) {
     });
   });
 
-  const labels = ppvLabelPositions(plottedPoints);
+  const labels = ppvLabelPositions(plottedPoints, { plotWidth, plotHeight });
 
   const gridLines = [
     ...xTickValues.map((value) => svgLine(xPos(value), margin.top, xPos(value), margin.top + plotHeight, {
@@ -1134,20 +1271,16 @@ function buildPpvChartSvg(records) {
   const pointMarkup = plottedPoints.map((point) => buildMarkerSvg(point.marker, xPos(point.freq), yPos(point.ppv), 4.2, point.color)).join("");
 
   const labelMarkup = labels.map((label) => {
-    const point = plottedPoints.find((item) => item.freq === label.freq && item.ppv === label.ppv && item.label === label.label && item.color === label.color);
-    if (!point) {
-      return "";
-    }
-    const x = xPos(point.freq);
-    const y = yPos(point.ppv);
+    const x = margin.left + (label.pointXFrac * plotWidth);
+    const y = margin.top + (label.pointYFrac * plotHeight);
     const labelX = margin.left + (label.xFrac * plotWidth);
     const labelY = margin.top + (label.yFrac * plotHeight);
     return `
-      ${svgLine(x, y, labelX, labelY, {
-        stroke: point.color,
+      ${svgLine(x, y, margin.left + (label.connectorXFrac * plotWidth), margin.top + (label.connectorYFrac * plotHeight), {
+        stroke: label.color,
         "stroke-width": 0.7,
       })}
-      ${buildLabelBoxSvg(labelX, labelY, point.label, point.color)}
+      ${buildLabelBoxSvg(labelX, labelY, label.lines, label.color, label)}
     `;
   }).join("");
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 import unittest
 
@@ -119,7 +120,7 @@ class SmokeTests(unittest.TestCase):
         lines = _overview_lines([record], datetime(2026, 5, 13), status_text)
         self.assertIn("⚠️ Índices de vibração: acima de 0,8 mm/s.", lines)
 
-    def test_report_chart_labels_stay_close_to_points(self) -> None:
+    def test_report_chart_labels_do_not_overlap(self) -> None:
         root = Path(__file__).resolve().parents[1]
         import json
         import subprocess
@@ -132,57 +133,21 @@ class SmokeTests(unittest.TestCase):
         script = r"""
 import { ppvLabelPositions, psplLabelPositions } from './report.js';
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-const ppvForward = (value) => {
-  const floor = 0.05;
-  const breakPoint = 0.1;
-  const lowBand = 0.5;
-  const offset = lowBand - breakPoint;
-  if (value <= breakPoint) {
-    const safe = Math.max(value, floor);
-    return lowBand * (Math.log(safe / floor) / Math.log(breakPoint / floor));
-  }
-  return value + offset;
-};
-
-const axisMax = 7000;
 const psplPoints = [
-  { distance: 1000, pspl: 118, label: 'A', color: '#111111', marker: 'o' },
-  { distance: 3000, pspl: 132, label: 'B', color: '#222222', marker: 'o' },
-  { distance: 5000, pspl: 124, label: 'C', color: '#333333', marker: 'o' },
+  { distance: 1100, pspl: 118, label: 'PONTO ALFA LONGO', color: '#111111', marker: 'o' },
+  { distance: 1250, pspl: 121, label: 'PONTO BETA LONGO', color: '#222222', marker: 'o' },
+  { distance: 1400, pspl: 124, label: 'PONTO GAMA LONGO', color: '#333333', marker: 'o' },
+  { distance: 1550, pspl: 127, label: 'PONTO DELTA LONGO', color: '#444444', marker: 'o' },
 ];
 const ppvPoints = [
-  { freq: 4, ppv: 0.6, label: 'A', color: '#111111', marker: 'o' },
-  { freq: 40, ppv: 1.2, label: 'B', color: '#222222', marker: 'o' },
-  { freq: 400, ppv: 3.0, label: 'C', color: '#333333', marker: 'o' },
+  { freq: 4, ppv: 0.6, label: 'FREQUENCIA ALFA LONGA', color: '#111111', marker: 'o' },
+  { freq: 5, ppv: 0.7, label: 'FREQUENCIA BETA LONGA', color: '#222222', marker: 'o' },
+  { freq: 6, ppv: 0.8, label: 'FREQUENCIA GAMA LONGA', color: '#333333', marker: 'o' },
+  { freq: 7, ppv: 0.9, label: 'FREQUENCIA DELTA LONGA', color: '#444444', marker: 'o' },
 ];
 
-const measure = (label, point) => Math.hypot(label.xFrac - point.x, label.yFrac - point.y);
-
-const psplPoint = (item) => ({
-  x: clamp(item.distance / axisMax, 0.08, 0.92),
-  y: clamp(1 - (item.pspl / 160), 0.08, 0.92),
-});
-
-const ppvPoint = (item) => {
-  const logMin = Math.log10(1);
-  const logMax = Math.log10(1000);
-  return {
-    x: clamp((Math.log10(Math.max(item.freq, 1)) - logMin) / (logMax - logMin), 0.08, 0.92),
-    y: clamp(1 - (ppvForward(item.ppv) / ppvForward(60)), 0.08, 0.92),
-  };
-};
-
-const pspl = psplLabelPositions(psplPoints, axisMax).map((label) => ({
-  label: label.label,
-  distance: measure(label, psplPoint(psplPoints.find((item) => item.label === label.label))),
-}));
-
-const ppv = ppvLabelPositions(ppvPoints).map((label) => ({
-  label: label.label,
-  distance: measure(label, ppvPoint(ppvPoints.find((item) => item.label === label.label))),
-}));
+const pspl = psplLabelPositions(psplPoints, 7000, { plotWidth: 320, plotHeight: 168 });
+const ppv = ppvLabelPositions(ppvPoints, { plotWidth: 318, plotHeight: 166 });
 
 process.stdout.write(JSON.stringify({ pspl, ppv }));
 """
@@ -196,11 +161,54 @@ process.stdout.write(JSON.stringify({ pspl, ppv }));
         )
         result = json.loads(completed.stdout)
 
-        for item in result["pspl"]:
-            self.assertLess(item["distance"], 0.22)
+        def assert_labels_are_separated(labels: list[dict[str, float]]) -> None:
+            rects = []
+            for label in labels:
+                rect = {
+                    "left": label["xFrac"] - (label["boxWidthFrac"] / 2),
+                    "right": label["xFrac"] + (label["boxWidthFrac"] / 2),
+                    "top": label["yFrac"] - (label["boxHeightFrac"] / 2),
+                    "bottom": label["yFrac"] + (label["boxHeightFrac"] / 2),
+                }
+                self.assertGreaterEqual(rect["left"], 0.0)
+                self.assertLessEqual(rect["right"], 1.0)
+                self.assertGreaterEqual(rect["top"], 0.0)
+                self.assertLessEqual(rect["bottom"], 1.0)
 
-        for item in result["ppv"]:
-            self.assertLess(item["distance"], 0.22)
+                center_distance = math.hypot(label["xFrac"] - label["pointXFrac"], label["yFrac"] - label["pointYFrac"])
+                connector_distance = math.hypot(label["connectorXFrac"] - label["pointXFrac"], label["connectorYFrac"] - label["pointYFrac"])
+                self.assertLess(connector_distance, center_distance)
+
+                for previous in rects:
+                    separated = (
+                        rect["right"] <= previous["left"] + 0.008
+                        or rect["left"] >= previous["right"] - 0.008
+                        or rect["bottom"] <= previous["top"] + 0.008
+                        or rect["top"] >= previous["bottom"] - 0.008
+                    )
+                    self.assertTrue(separated)
+
+                rects.append(rect)
+
+        assert_labels_are_separated(result["pspl"])
+        assert_labels_are_separated(result["ppv"])
+
+    def test_report_cover_title_stays_clear_of_logo(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        import re
+
+        report_text = (root / "report.js").read_text(encoding="utf-8")
+        title_match = re.search(r"const COVER_TITLE_TOP_MM = ([0-9.]+);", report_text)
+        logo_match = re.search(r"\.report-logo \{.*?top: ([0-9.]+)mm;.*?height: ([0-9.]+)mm;", report_text, re.S)
+
+        self.assertIsNotNone(title_match)
+        self.assertIsNotNone(logo_match)
+
+        title_top = float(title_match.group(1))
+        logo_top = float(logo_match.group(1))
+        logo_height = float(logo_match.group(2))
+
+        self.assertGreater(title_top, logo_top + logo_height)
 
     def test_report_adds_appendix_page_for_extra_records(self) -> None:
         root = Path(__file__).resolve().parents[1]
