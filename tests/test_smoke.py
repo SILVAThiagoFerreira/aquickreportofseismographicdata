@@ -180,6 +180,11 @@ process.stdout.write(JSON.stringify({ pspl, ppv }));
                 self.assertLess(connector_distance, center_distance)
 
                 for previous in rects:
+                    gap = math.hypot(
+                        max(previous["left"] - rect["right"], rect["left"] - previous["right"], 0.0),
+                        max(previous["top"] - rect["bottom"], rect["top"] - previous["bottom"], 0.0),
+                    )
+                    self.assertGreaterEqual(gap, 0.015)
                     separated = (
                         rect["right"] <= previous["left"] + 0.008
                         or rect["left"] >= previous["right"] - 0.008

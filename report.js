@@ -684,6 +684,12 @@ function rectIntersectionArea(left, right) {
   return width * height;
 }
 
+function rectDistance(left, right) {
+  const horizontalGap = Math.max(left.left - right.right, right.left - left.right, 0);
+  const verticalGap = Math.max(left.top - right.bottom, right.top - left.bottom, 0);
+  return Math.hypot(horizontalGap, verticalGap);
+}
+
 function distancePointToRect(pointX, pointY, rect) {
   const dx = Math.max(rect.left - pointX, 0, pointX - rect.right);
   const dy = Math.max(rect.top - pointY, 0, pointY - rect.bottom);
@@ -773,9 +779,14 @@ function placeChartLabels(labelSpecs) {
 
       const overlapArea = placed.reduce((sum, item) => sum + rectIntersectionArea(rect, item.rect), 0);
       const overlapCount = placed.reduce((count, item) => count + (rectsOverlap(rect, item.rect) ? 1 : 0), 0);
+      const desiredGap = Math.max(0.022, spec.boxHeightFrac * 0.55);
+      const proximityPenalty = placed.reduce((sum, item) => {
+        const gap = rectDistance(rect, item.rect);
+        return sum + (Math.max(0, desiredGap - gap) * 3500);
+      }, 0);
       const distance = Math.hypot(centerX - spec.pointXFrac, centerY - spec.pointYFrac);
       const edgeDistance = Math.min(centerX - minCenterX, maxCenterX - centerX, centerY - minCenterY, maxCenterY - centerY);
-      const score = (overlapCount * 1000) + (overlapArea * 5000) + (distance * 100) - (edgeDistance * 2);
+      const score = (overlapCount * 1000) + (overlapArea * 5000) + proximityPenalty + (distance * 100) - (edgeDistance * 2);
 
       if (score < bestScore) {
         best = { centerX, centerY, rect };
