@@ -24,6 +24,49 @@ function extractLines(text) {
   return lines;
 }
 
+const INLINE_FIELD_LABELS = [
+  "Printed:",
+  "File:",
+  "Serial No:",
+  "Date:",
+  "Event No:",
+  "Record Time:",
+  "Client:",
+  "Operation:",
+  "Location:",
+  "Distance:",
+  "Operator:",
+  "Comment:",
+  "Seismic Trigger:",
+  "Sound Trigger:",
+  "Summary Data",
+  "FREQ (Hz)",
+  "PD (.01mm)",
+  "PPA (g)",
+  "Peak Vector Sum :",
+  "Peak Air Pressure:",
+  "Additional Info:",
+  "Shaketable Calibrated:",
+  "By:",
+  "Velocity Waveform Graph Scale",
+  "Time Scale:",
+  "Seismic Scale:",
+  "Sound Scale:",
+];
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function trimAtNextInlineField(value, currentPrefix) {
+  const otherLabels = INLINE_FIELD_LABELS
+    .filter((label) => label.toLowerCase() !== String(currentPrefix).toLowerCase())
+    .map(escapeRegExp);
+  const stopPattern = new RegExp(`\\s+(?:${otherLabels.join("|")})`, "i");
+  const stopIndex = value.search(stopPattern);
+  return (stopIndex >= 0 ? value.slice(0, stopIndex) : value).trim();
+}
+
 function findLine(lines, target) {
   return lines.findIndex((line) => line === target);
 }
@@ -131,22 +174,43 @@ function parseEventDate(text) {
   return null;
 }
 
-function extractLineValue(lines, prefix) {
+function extractLineValue(lines, prefix, options = {}) {
   const lowerPrefix = prefix.toLowerCase();
-  const line = lines.find((entry) => entry.toLowerCase().startsWith(lowerPrefix));
+  const index = lines.findIndex((entry) => entry.toLowerCase().includes(lowerPrefix));
+  const line = index >= 0 ? lines[index] : null;
   if (!line) {
     return null;
   }
-  const value = line.slice(prefix.length).replace(/^:\s*/, "").trim();
-  return value || null;
+  const prefixIndex = line.toLowerCase().indexOf(lowerPrefix);
+  const rawValue = line.slice(prefixIndex + prefix.length).replace(/^:\s*/, "").trim();
+  const value = trimAtNextInlineField(rawValue, prefix);
+  if (value) {
+    return value;
+  }
+  if (options.nextLineIfEmpty && index + 1 < lines.length) {
+    const nextLine = lines[index + 1]?.trim();
+    return nextLine || null;
+  }
+  return null;
 }
 
 function extractTripletValues(lines, prefix) {
-  const line = extractLineValue(lines, prefix);
+  const lowerPrefix = prefix.toLowerCase();
+  const index = lines.findIndex((entry) => entry.toLowerCase().includes(lowerPrefix));
+  const line = index >= 0 ? lines[index] : null;
   if (!line) {
     return [null, null, null];
   }
-  const values = line.match(/[-+]?\d+(?:[.,]\d+)?/g)?.map(parseFloatValue) ?? [];
+  const prefixIndex = line.toLowerCase().indexOf(lowerPrefix);
+  const rawValue = line.slice(prefixIndex + prefix.length).trim();
+  const valueText = trimAtNextInlineField(rawValue, prefix);
+  let values = valueText.match(/[-+]?\d+(?:[.,]\d+)?/g)?.map(parseFloatValue) ?? [];
+  if (!values.length && index + 3 < lines.length) {
+    values = lines
+      .slice(index + 1, index + 4)
+      .map((entry) => parseFloatValue(entry))
+      .filter((value) => value != null);
+  }
   return [values[0] ?? null, values[1] ?? null, values[2] ?? null];
 }
 
@@ -184,27 +248,27 @@ function detectSismogramModel(text) {
 function parseGeoSonicsSismogramFromText(file, text) {
   const lines = extractLines(text);
 
-  const serialNumber = extractLineValue(lines, "Serial No:");
-  const dateValue = extractLineValue(lines, "Date:");
+  const serialNumber = extractLineValue(lines, "Serial No:", { nextLineIfEmpty: true });
+  const dateValue = extractLineValue(lines, "Date:", { nextLineIfEmpty: true });
   const eventDate = dateValue ? mmDdYyyyToIso(dateValue.split(/\s+/)[0]) : null;
   const fileNameRaw = extractLineValue(lines, "File:");
   const fileName = fileNameRaw ? fileNameRaw.replace(/\s*\(.+$/, "").trim() : null;
-  const location = extractLineValue(lines, "Location:");
-  const client = extractLineValue(lines, "Client:");
-  const operationName = extractLineValue(lines, "Operation:") ?? extractLineValue(lines, "Operator:");
+  const location = extractLineValue(lines, "Location:", { nextLineIfEmpty: true });
+  const client = extractLineValue(lines, "Client:", { nextLineIfEmpty: true });
+  const operationName = extractLineValue(lines, "Operation:", { nextLineIfEmpty: true }) ?? extractLineValue(lines, "Operator:", { nextLineIfEmpty: true });
   const calibrationDate = extractLineValue(lines, "Shaketable Calibrated:");
   const calibrationBy = extractLineValue(lines, "By:");
   const unitCalibration = calibrationDate && calibrationBy
     ? `${calibrationDate} by ${calibrationBy}`
     : calibrationDate ?? calibrationBy;
-  const distanceRaw = extractLineValue(lines, "Distance:");
+  const distanceRaw = extractLineValue(lines, "Distance:", { nextLineIfEmpty: true });
   const distanceValue = distanceRaw ? parseFloatValue(distanceRaw) : null;
   const ppvValues = extractTripletValues(lines, "PPV (mm/s)");
   const freqValues = extractTripletValues(lines, "FREQ (Hz)");
   const timeValues = extractTripletValues(lines, "Time (Rel. to Trig)");
   const overswingValues = extractTripletValues(lines, "Overswing Ratio");
 
-  const psplLine = extractLineValue(lines, "Peak Air Pressure:");
+  const psplLine = extractLineValue(lines, "Peak Air Pressure:", { nextLineIfEmpty: true });
   const psplDbL = psplLine ? parseFloatValue(psplLine) : null;
 
   const microphoneMatch = /PSI\s*@\s*([0-9.,>]+)\s*Hz/i.exec(text);
