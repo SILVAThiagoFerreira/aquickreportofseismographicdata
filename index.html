@@ -4,79 +4,79 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Envie PDFs de sismogramas e gere o relatório pronto no navegador, sem backend.">
-  <meta name="theme-color" content="#0f1218">
+  <meta name="theme-color" content="#0f1528">
   <title>Report Sismografia Enaex</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="background-mesh" aria-hidden="true"></div>
-  <main class="app-shell">
-    <header class="panel masthead">
-      <div class="masthead-brand">
-        <img class="masthead-mark" src="./VISUAL/Logo enaex sem texto.png" alt="Enaex">
-        <div class="brand-copy">
-          <p class="eyebrow">GitHub Pages</p>
-          <h1>Report Sismografia</h1>
-          <p class="brand-subtitle">Leitura local, extração no navegador e PDF baixável sem backend.</p>
-        </div>
-      </div>
+  <div class="atmosphere" aria-hidden="true">
+    <span class="orb orb-red"></span>
+    <span class="orb orb-green"></span>
+    <span class="grid-fade"></span>
+  </div>
 
-      <div class="masthead-badges" aria-label="Resumo da interface">
-        <span class="hero-chip">Browser only</span>
-        <span class="hero-chip">GeoSonics + Instantel</span>
-        <span class="hero-chip">Serial tags no gráfico</span>
-      </div>
-
-      <div class="masthead-art" aria-hidden="true">
-        <article class="brand-card brand-card--hero">
-          <div class="brand-card-copy">
-            <p class="hero-kicker">Visual Enaex</p>
-            <strong>Interface editorial com a paleta institucional.</strong>
-            <p>Os visuais da pasta <code>VISUAL</code> foram usados para criar uma composição mais forte e legível.</p>
+  <main class="shell">
+    <header class="hero panel">
+      <div class="hero-head">
+        <div class="hero-brand">
+          <img class="hero-logo" src="./VISUAL/Logo enaex sem texto.png" alt="Enaex">
+          <div>
+            <p class="eyebrow">Github Pages | Frontend local</p>
+            <h1>Central de Relatorio Sismografico</h1>
           </div>
-          <img class="brand-card-mark" src="./VISUAL/Enaex Brasil - White.png" alt="">
-        </article>
+        </div>
+        <img class="hero-wordmark" src="./VISUAL/Enaex Brasil - White.png" alt="Enaex Brasil">
+      </div>
 
-        <div class="brand-card-grid">
-          <article class="brand-card brand-card--tile">
+      <div class="hero-content">
+        <div class="hero-copy">
+          <p>
+            Upload dos sismogramas, extracao local no navegador e relatorio final em PDF. Sem backend, sem transferencia de arquivos.
+          </p>
+          <div class="hero-flags" aria-label="Capacidades principais">
+            <span class="hero-chip">GeoSonics + Instantel</span>
+            <span class="hero-chip">Tag por Serial No</span>
+            <span class="hero-chip">Fallback PVS por eixo</span>
+          </div>
+        </div>
+        <div class="hero-cards" aria-hidden="true">
+          <article class="hero-card">
             <img src="./VISUAL/Enaex Brasil.png" alt="">
-            <span>Brand wall</span>
+            <p>Visual institucional aplicado ao fluxo operacional.</p>
           </article>
-          <article class="brand-card brand-card--tile brand-card--tile-alt">
+          <article class="hero-card hero-card-accent">
             <img src="./VISUAL/LOGO STRONGER BONDS.png" alt="">
-            <span>Identidade Enaex</span>
+            <p>Layout modular para leitura rapida e exportacao direta.</p>
           </article>
         </div>
       </div>
     </header>
 
-    <aside class="panel intake-panel">
-      <div class="intake-head">
-        <p class="eyebrow">Entrada</p>
-        <h2>Carregue os PDFs</h2>
-        <p class="intake-lead">
-          Selecione um ou mais sismogramas e gere o relatório no próprio navegador. Nenhum arquivo sai do seu computador.
-        </p>
+    <aside class="console panel">
+      <div class="console-header">
+        <p class="eyebrow">Entrada de dados</p>
+        <h2>Carregue os PDFs do monitoramento</h2>
+        <p class="console-lead">A leitura acontece 100% local. Nenhum documento sai da maquina.</p>
       </div>
 
-      <div class="intake-steps" aria-label="Passos rápidos">
-        <article class="intake-step">
+      <div class="console-steps" aria-label="Passos do fluxo">
+        <article class="console-step">
           <span>01</span>
-          <strong>Selecione os PDFs</strong>
-          <p>Arraste os arquivos ou clique no botão de seleção.</p>
+          <strong>Selecionar arquivos</strong>
+          <p>Arraste os PDFs ou clique em selecionar.</p>
         </article>
-        <article class="intake-step">
+        <article class="console-step">
           <span>02</span>
-          <strong>Valide e processe</strong>
-          <p>O navegador extrai os dados e classifica os registros.</p>
+          <strong>Processar extracao</strong>
+          <p>O parser interpreta cada sismograma no browser.</p>
         </article>
-        <article class="intake-step">
+        <article class="console-step">
           <span>03</span>
-          <strong>Baixe o relatório</strong>
-          <p>O PDF final é gerado localmente e fica pronto para download.</p>
+          <strong>Baixar relatorio</strong>
+          <p>Geracao do PDF final pronta para envio.</p>
         </article>
       </div>
 
@@ -84,8 +84,8 @@
         <input id="file-input" type="file" accept="application/pdf,.pdf" multiple hidden>
         <div class="dropzone-icon" aria-hidden="true">PDF</div>
         <div class="dropzone-copy">
-          <strong>Arraste os PDFs aqui</strong>
-          <span>ou selecione os arquivos para processar localmente.</span>
+          <strong>Arraste os sismogramas aqui</strong>
+          <span>ou selecione os documentos para iniciar.</span>
         </div>
         <button class="button button-primary" id="pick-button" type="button">Selecionar PDFs</button>
       </div>
@@ -107,69 +107,32 @@
         </div>
       </div>
 
-      <div class="micro-note">
-        O relatório é montado no navegador com base no `config.json` do repositório.
-      </div>
+      <p class="console-note">Regra e limite de validacao carregados de <code>config.json</code>.</p>
     </aside>
 
-    <section class="dashboard-stack">
-      <section class="panel story-panel">
-        <div class="story-copy">
-          <p class="eyebrow">Painel de comando</p>
-          <h2>Leitura local com aparência de operação crítica.</h2>
-          <p class="story-lead">
-            A interface foi organizada para dar prioridade ao que interessa: contexto, upload, leitura dos registros e saída do PDF.
-          </p>
-          <div class="story-pills">
-            <span>Fallback GeoSonics</span>
-            <span>Tag serial no gráfico</span>
-            <span>Github Pages sem backend</span>
-          </div>
-        </div>
-
-        <div class="story-visual" aria-hidden="true">
-          <article class="story-frame story-frame--featured">
-            <img src="./VISUAL/Enaex Brasil.png" alt="">
-            <div class="story-frame-copy">
-              <span>Base visual</span>
-              <strong>Marca Enaex em destaque</strong>
-            </div>
-          </article>
-          <div class="story-frame-grid">
-            <article class="story-frame story-frame--stack">
-              <img src="./VISUAL/enaex-sa--600.png" alt="">
-              <p>Estrutura leve para GitHub Pages.</p>
-            </article>
-            <article class="story-frame story-frame--stack story-frame--inverse">
-              <img src="./VISUAL/Logo enaex sem texto.png" alt="">
-              <p>Upload e leitura acontecem localmente.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
+    <section class="workspace">
       <section class="panel stats-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Resumo</p>
-            <h2>Visão geral</h2>
+            <p class="eyebrow">Resumo de extracao</p>
+            <h2>Visao geral dos registros</h2>
           </div>
-          <div class="badge badge-muted" id="config-badge">Configuração local</div>
+          <div class="badge badge-muted" id="config-badge">Configuracao local</div>
         </div>
         <div class="stats-grid" id="stats-grid"></div>
       </section>
 
-      <section class="reports-grid">
+      <section class="workspace-row">
         <section class="panel records-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Arquivos</p>
-              <h2>Registros extraídos</h2>
+              <p class="eyebrow">Registros</p>
+              <h2>Arquivos processados</h2>
             </div>
             <div class="badge badge-muted" id="file-count">0 PDFs</div>
           </div>
           <div class="table-scroll">
-            <table class="records-table" aria-label="Registros extraídos">
+            <table class="records-table" aria-label="Registros extraidos">
               <thead>
                 <tr>
                   <th>Arquivo</th>
@@ -178,12 +141,12 @@
                   <th>Data</th>
                   <th>PVS</th>
                   <th>PSPL</th>
-                  <th>Situação</th>
+                  <th>Situacao</th>
                 </tr>
               </thead>
               <tbody id="records-body">
                 <tr class="empty-row">
-                  <td colspan="7">Selecione PDFs para ver a extração.</td>
+                  <td colspan="7">Selecione PDFs para ver os dados extraidos.</td>
                 </tr>
               </tbody>
             </table>
@@ -193,13 +156,13 @@
         <section class="panel detail-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Detalhe</p>
-              <h2>Último arquivo processado</h2>
+              <p class="eyebrow">Detalhe tecnico</p>
+              <h2>Ultimo arquivo lido</h2>
             </div>
           </div>
           <div class="detail-list" id="detail-list">
             <div class="empty-state">
-              O detalhe do último arquivo aparece aqui após o processamento.
+              O detalhe tecnico do ultimo registro sera exibido apos o processamento.
             </div>
           </div>
         </section>
