@@ -21,6 +21,7 @@
 - [x] Não há lógica monolítica.
 - [x] O relatório é gerado localmente no navegador.
 - [x] Os PDFs são ordenados alfabeticamente antes do processamento.
+- [x] O parser suporta Instantel Micromate e GeoSonics com o mesmo relatório.
 - [x] O status de vibração abaixo/acima do limite aparece no PDF e na interface.
 - [x] PDFs com mais de três registros geram páginas complementares sem perda de dados.
 - [x] O fluxo Python permanece apenas como legado.

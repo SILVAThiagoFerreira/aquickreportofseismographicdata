@@ -17,10 +17,16 @@
 ## O que a versão web faz
 
 - Lê os PDFs no navegador.
+- Detecta automaticamente os layouts Instantel Micromate e GeoSonics.
 - Valida a entrada antes de processar.
 - Monta o PDF no navegador com páginas HTML/SVG capturadas por `html2canvas` local.
 - Gera um PDF final com resumo e páginas complementares quando necessário.
 - Usa `config.json` para o limite de vibração e a quantidade de registros no resumo.
+
+## Modelos suportados
+
+- `modelos de sismograma/INSTANTEL MICROMATE.pdf`
+- `modelos de sismograma/GEOSONIC.pdf`
 
 ## Deploy no GitHub Pages
 

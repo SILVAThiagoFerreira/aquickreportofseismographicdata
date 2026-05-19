@@ -6,7 +6,7 @@ Processar PDFs de sismogramas enviados pelo usuário no navegador, extrair os da
 
 ## Entradas
 
-- PDFs de sismograma selecionados no site.
+- PDFs de sismograma selecionados no site, em layouts Instantel Micromate ou GeoSonics.
 - Configuração em `config.json`.
 - Logo institucional em caminho configurado.
 
@@ -16,7 +16,7 @@ Processar PDFs de sismogramas enviados pelo usuário no navegador, extrair os da
 2. Validar seleção de arquivos antes do processamento.
 3. Ordenar os PDFs alfabeticamente pelo nome.
 4. Extrair texto de cada PDF no navegador.
-5. Interpretar os campos técnicos e derivar status de conformidade.
+5. Identificar automaticamente o layout suportado e normalizar os campos técnicos.
 6. Gerar um PDF local com resumo e páginas complementares quando necessário.
 7. Expor o arquivo para download no navegador.
 

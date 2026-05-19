@@ -14,6 +14,7 @@ Campos principais:
 - `location`: nome da localização monitorada.
 - `client`: cliente extraído do documento.
 - `user_name`: nome operacional usado como cliente principal.
+- `operation_name`: nome da operação/operador quando disponível.
 - `serial_number`: número de série do equipamento.
 - `battery_level`: nível de bateria.
 - `unit_calibration`: calibração da unidade.

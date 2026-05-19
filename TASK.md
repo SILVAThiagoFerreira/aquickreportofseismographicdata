@@ -2,20 +2,21 @@
 
 ## Tarefa Atual
 
-Relatório web ajustado para espelhar o layout do legado Python.
+Relatório web com suporte a múltiplos modelos de sismograma.
 
 ## Resultado Esperado
 
 - O site abre em GitHub Pages sem backend.
 - O usuário envia PDFs e recebe um PDF pronto para baixar.
 - A extração acontece localmente no navegador.
+- O site aceita os modelos Instantel Micromate e GeoSonics da pasta `modelos de sismograma/`.
 - O limite de vibração continua vindo de `config.json`.
 - O resumo usa até três registros na primeira página e mantém os demais em páginas complementares.
 - O PDF é montado no navegador por captura HTML/SVG com bibliotecas locais.
 
 ## Status
 
-- Validado no navegador.
+- Em validação com Instantel Micromate e GeoSonics.
 - O fluxo web está estático, roda no navegador e mantém o legado Python apenas como alternativa local.
 
 ## Critério de Conclusão

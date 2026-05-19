@@ -131,6 +131,119 @@ function parseEventDate(text) {
   return null;
 }
 
+function extractLineValue(lines, prefix) {
+  const lowerPrefix = prefix.toLowerCase();
+  const line = lines.find((entry) => entry.toLowerCase().startsWith(lowerPrefix));
+  if (!line) {
+    return null;
+  }
+  const value = line.slice(prefix.length).replace(/^:\s*/, "").trim();
+  return value || null;
+}
+
+function extractTripletValues(lines, prefix) {
+  const line = extractLineValue(lines, prefix);
+  if (!line) {
+    return [null, null, null];
+  }
+  const values = line.match(/[-+]?\d+(?:[.,]\d+)?/g)?.map(parseFloatValue) ?? [];
+  return [values[0] ?? null, values[1] ?? null, values[2] ?? null];
+}
+
+function mmDdYyyyToIso(dateStr) {
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(dateStr).trim());
+  if (!match) {
+    return null;
+  }
+  const month = String(Number(match[1])).padStart(2, "0");
+  const day = String(Number(match[2])).padStart(2, "0");
+  return `${match[3]}-${month}-${day}`;
+}
+
+function detectSismogramModel(text) {
+  if (/GeoSonics Inc\. Seismic Analysis/i.test(text) || /Velocity Waveform Analysis/i.test(text)) {
+    return "geosonics";
+  }
+  return "instantel";
+}
+
+function parseGeoSonicsSismogramFromText(file, text) {
+  const lines = extractLines(text);
+
+  const serialNumber = extractLineValue(lines, "Serial No:");
+  const dateValue = extractLineValue(lines, "Date:");
+  const eventDate = dateValue ? mmDdYyyyToIso(dateValue.split(/\s+/)[0]) : null;
+  const fileNameRaw = extractLineValue(lines, "File:");
+  const fileName = fileNameRaw ? fileNameRaw.replace(/\s*\(.+$/, "").trim() : null;
+  const location = extractLineValue(lines, "Location:");
+  const client = extractLineValue(lines, "Client:");
+  const operationName = extractLineValue(lines, "Operation:") ?? extractLineValue(lines, "Operator:");
+  const calibrationDate = extractLineValue(lines, "Shaketable Calibrated:");
+  const calibrationBy = extractLineValue(lines, "By:");
+  const unitCalibration = calibrationDate && calibrationBy
+    ? `${calibrationDate} by ${calibrationBy}`
+    : calibrationDate ?? calibrationBy;
+  const distanceRaw = extractLineValue(lines, "Distance:");
+  const distanceValue = distanceRaw ? parseFloatValue(distanceRaw) : null;
+  const ppvValues = extractTripletValues(lines, "PPV (mm/s)");
+  const freqValues = extractTripletValues(lines, "FREQ (Hz)");
+  const timeValues = extractTripletValues(lines, "Time (Rel. to Trig)");
+  const overswingValues = extractTripletValues(lines, "Overswing Ratio");
+
+  const psplLine = extractLineValue(lines, "Peak Air Pressure:");
+  const psplDbL = psplLine ? parseFloatValue(psplLine) : null;
+
+  const microphoneMatch = /PSI\s*@\s*([0-9.,>]+)\s*Hz/i.exec(text);
+  const microphoneZcFreqHz = microphoneMatch ? parseFrequencyToken(microphoneMatch[1]) : null;
+
+  const peakVectorMatch = new RegExp("Peak Vector Sum\\s*:?[\\s\\S]*?([0-9.,>]+)\\s*mm\\/s", "i").exec(text);
+  const peakVectorSumMmS = peakVectorMatch ? parseFloatValue(peakVectorMatch[1]) : null;
+
+  const axisIndexByChannel = {
+    Tran: 1,
+    Vert: 2,
+    Long: 0,
+  };
+  const channels = Object.fromEntries(CHANNEL_ORDER.map((axis) => {
+    const sourceIndex = axisIndexByChannel[axis];
+    const ppv = ppvValues[sourceIndex] ?? null;
+    const freq = freqValues[sourceIndex] ?? null;
+    const limit = vibrationReferenceLimit(freq);
+    return [axis, {
+      axis,
+      ppv_mm_s: ppv,
+      zc_freq_hz: freq,
+      event_time: timeValues[sourceIndex] ?? null,
+      sensor_frequency_hz: null,
+      overswing_ratio: overswingValues[sourceIndex] ?? null,
+      reference_limit_mm_s: limit,
+      compliant: ppv == null || limit == null ? null : ppv <= limit,
+    }];
+  }));
+
+  return {
+    source_pdf: file.name,
+    location: location || stripExtension(file.name),
+    client,
+    user_name: client || operationName,
+    operation_name: operationName,
+    serial_number: serialNumber,
+    battery_level: null,
+    unit_calibration: unitCalibration,
+    file_name: fileName,
+    scaled_distance: distanceValue,
+    distance_m: distanceValue,
+    charge_kg: null,
+    raw_scaled_distance: distanceRaw,
+    event_date: eventDate,
+    pspl_db_l: psplDbL,
+    microphone_zc_freq_hz: microphoneZcFreqHz,
+    peak_vector_sum_mm_s: peakVectorSumMmS,
+    channels,
+    pspl_compliant: psplDbL == null ? null : psplDbL <= 134.0,
+  };
+}
+
 function parseChannel(lines, axis) {
   const axisPattern = new RegExp(`\\b${axis}\\b`, "i");
   const index = lines.findIndex((line) => axisPattern.test(line));
@@ -166,6 +279,10 @@ function parseChannel(lines, axis) {
 }
 
 function parseSismogramFromText(file, text) {
+  if (detectSismogramModel(text) === "geosonics") {
+    return parseGeoSonicsSismogramFromText(file, text);
+  }
+
   const lines = extractLines(text);
 
   const header = parseHeaderBlock(text);

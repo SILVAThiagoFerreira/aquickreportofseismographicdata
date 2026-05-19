@@ -6,7 +6,7 @@
 2. Validar a seleção de arquivos no navegador.
 3. Ordenar os PDFs em ordem alfabética pelo nome.
 4. Ler o texto de cada PDF com PDF.js.
-5. Extrair e normalizar os campos técnicos de cada documento.
+5. Detectar automaticamente o layout suportado e extrair os campos técnicos normalizados.
 6. Validar se há registros processáveis.
 7. Montar o relatório PDF com a primeira página de resumo.
 8. Adicionar páginas complementares quando houver mais de três registros.

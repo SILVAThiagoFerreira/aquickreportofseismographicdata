@@ -338,6 +338,84 @@ process.stdout.write(JSON.stringify({ pspl, ppv }));
             except Exception:
                 server.kill()
 
+    def test_browser_parser_extracts_geosonics_values(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        import os
+        import subprocess
+        import time
+        import urllib.request
+
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            self.skipTest("playwright not installed")
+
+        port = 18081
+        env = {**os.environ, "PORT": str(port)}
+
+        try:
+            server = subprocess.Popen(
+                ["node", "server.js"],
+                cwd=root,
+                env=env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except FileNotFoundError:
+            self.skipTest("node not installed")
+
+        try:
+            deadline = time.time() + 30
+            while time.time() < deadline:
+                if server.poll() is not None:
+                    self.fail("server.js exited before becoming ready")
+                try:
+                    with urllib.request.urlopen(f"http://localhost:{port}", timeout=1) as response:
+                        if response.status == 200:
+                            break
+                except Exception:
+                    time.sleep(0.2)
+            else:
+                self.fail("server.js did not start")
+
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch(
+                    headless=True,
+                    args=["--allow-file-access-from-files", "--disable-web-security"],
+                )
+                page = browser.new_page(viewport={"width": 1600, "height": 1200})
+                try:
+                    page.goto(f"http://localhost:{port}", wait_until="networkidle", timeout=120000)
+                    record = page.evaluate(
+                        """async () => {
+                            const mod = await import('./parser.js');
+                            const resp = await fetch('./modelos%20de%20sismograma/GEOSONIC.pdf');
+                            const blob = await resp.blob();
+                            const file = new File([blob], 'GEOSONIC.pdf', { type: 'application/pdf' });
+                            return await mod.parsePdfFile(file);
+                        }""",
+                    )
+                finally:
+                    browser.close()
+
+            self.assertEqual(record["location"], "NORDESTE")
+            self.assertEqual(record["client"], "CMOC")
+            self.assertEqual(record["user_name"], "CMOC")
+            self.assertEqual(record["operation_name"], "ENAEX")
+            self.assertEqual(record["event_date"], "2026-05-14")
+            self.assertAlmostEqual(record["pspl_db_l"], 126.0, places=1)
+            self.assertAlmostEqual(record["microphone_zc_freq_hz"], 11.1, places=1)
+            self.assertAlmostEqual(record["peak_vector_sum_mm_s"], 0.7, places=2)
+            self.assertAlmostEqual(record["channels"]["Tran"]["ppv_mm_s"], 0.38, places=2)
+            self.assertAlmostEqual(record["channels"]["Vert"]["ppv_mm_s"], 0.51, places=2)
+            self.assertAlmostEqual(record["channels"]["Long"]["ppv_mm_s"], 0.64, places=2)
+        finally:
+            server.terminate()
+            try:
+                server.wait(timeout=10)
+            except Exception:
+                server.kill()
+
 
 if __name__ == "__main__":
     unittest.main()

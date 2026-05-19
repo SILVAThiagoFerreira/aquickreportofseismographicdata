@@ -426,7 +426,7 @@ function formatRecordDetail(record, field) {
     case "location":
       return `Cliente: ${getPrimaryClient([record])}`;
     case "client":
-      return record.user_name ? `Operação: ${record.user_name}` : record.client ? `Cliente bruto: ${record.client}` : "Cliente não identificado";
+      return record.operation_name ? `Operação: ${record.operation_name}` : record.user_name ? `Operação: ${record.user_name}` : record.client ? `Cliente bruto: ${record.client}` : "Cliente não identificado";
     case "event_date":
       return `Vibração: ${formatVibrationStatus([record], threshold)}`;
     case "peak_vector_sum_mm_s":
@@ -473,6 +473,7 @@ function renderLastRecord(record) {
 
   const fields = [
     ["Cliente", getPrimaryClient([record])],
+    ["Operação", record.operation_name ?? "N/D"],
     ["Número de série", record.serial_number ?? "N/D"],
     ["Bateria", record.battery_level ?? "N/D"],
     ["Calibração", record.unit_calibration ?? "N/D"],
