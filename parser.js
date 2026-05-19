@@ -132,16 +132,24 @@ function parseEventDate(text) {
 }
 
 function parseChannel(lines, axis) {
-  const index = findLine(lines, axis);
+  const axisPattern = new RegExp(`\\b${axis}\\b`, "i");
+  const index = lines.findIndex((line) => axisPattern.test(line));
   if (index < 0) {
     return { axis };
   }
-  const block = lines.slice(index + 1, index + 8);
-  const ppv = parseFloatValue(block[0]);
-  const freq = parseFrequencyToken(block[1]);
-  const eventTime = block[3] ?? null;
-  const sensorFrequency = parseFloatValue(block[5]);
-  const overswingRatio = parseFloatValue(block[6]);
+  const axisLine = lines[index];
+  const ppvMatch = new RegExp(`\\b${axis}\\s+([0-9.,>]+)`, "i").exec(axisLine);
+  const ppv = ppvMatch ? parseFloatValue(ppvMatch[1]) : null;
+
+  let freq = null;
+  for (let offset = 1; offset <= 4 && index + offset < lines.length; offset += 1) {
+    const candidate = parseFrequencyToken(lines[index + offset]);
+    if (candidate != null) {
+      freq = candidate;
+      break;
+    }
+  }
+
   const limit = vibrationReferenceLimit(freq);
   const compliant = ppv == null || limit == null ? null : ppv <= limit;
 
@@ -149,9 +157,9 @@ function parseChannel(lines, axis) {
     axis,
     ppv_mm_s: ppv,
     zc_freq_hz: freq,
-    event_time: eventTime,
-    sensor_frequency_hz: sensorFrequency,
-    overswing_ratio: overswingRatio,
+    event_time: null,
+    sensor_frequency_hz: null,
+    overswing_ratio: null,
     reference_limit_mm_s: limit,
     compliant,
   };

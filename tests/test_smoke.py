@@ -170,6 +170,78 @@ class SmokeTests(unittest.TestCase):
             self.assertTrue(exported["png"].exists())
             self.assertTrue(exported["png_p2"].exists())
 
+    def test_browser_parser_extracts_channel_values(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        import os
+        import subprocess
+        import time
+        import urllib.request
+
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            self.skipTest("playwright not installed")
+
+        port = 18080
+        env = {**os.environ, "PORT": str(port)}
+
+        try:
+            server = subprocess.Popen(
+                ["node", "server.js"],
+                cwd=root,
+                env=env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except FileNotFoundError:
+            self.skipTest("node not installed")
+
+        try:
+            deadline = time.time() + 30
+            while time.time() < deadline:
+                if server.poll() is not None:
+                    self.fail("server.js exited before becoming ready")
+                try:
+                    with urllib.request.urlopen(f"http://localhost:{port}", timeout=1) as response:
+                        if response.status == 200:
+                            break
+                except Exception:
+                    time.sleep(0.2)
+            else:
+                self.fail("server.js did not start")
+
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch(
+                    headless=True,
+                    args=["--allow-file-access-from-files", "--disable-web-security"],
+                )
+                page = browser.new_page(viewport={"width": 1600, "height": 1200})
+                try:
+                    page.goto(f"http://localhost:{port}", wait_until="networkidle", timeout=120000)
+                    record = page.evaluate(
+                        """async () => {
+                            const mod = await import('./parser.js');
+                            const resp = await fetch('./input/20260515-BARRAGEM%20DE%20REJEITOS.pdf');
+                            const blob = await resp.blob();
+                            const file = new File([blob], '20260515-BARRAGEM DE REJEITOS.pdf', { type: 'application/pdf' });
+                            return await mod.parsePdfFile(file);
+                        }""",
+                    )
+                finally:
+                    browser.close()
+
+            self.assertEqual(record["location"], "BARRAGEM DE REJEITOS")
+            self.assertAlmostEqual(record["channels"]["Tran"]["ppv_mm_s"], 0.063, places=3)
+            self.assertAlmostEqual(record["channels"]["Tran"]["zc_freq_hz"], 26.99, places=2)
+            self.assertAlmostEqual(record["channels"]["Vert"]["ppv_mm_s"], 0.071, places=3)
+            self.assertAlmostEqual(record["channels"]["Long"]["zc_freq_hz"], 28.02, places=2)
+        finally:
+            server.terminate()
+            try:
+                server.wait(timeout=10)
+            except Exception:
+                server.kill()
+
 
 if __name__ == "__main__":
     unittest.main()

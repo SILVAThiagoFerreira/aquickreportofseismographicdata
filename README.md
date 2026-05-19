@@ -8,6 +8,12 @@
 2. Selecione ou arraste um ou mais PDFs.
 3. Aguarde a extração local e baixe o relatório.
 
+## Execução local
+
+1. Rode `node server.js` na raiz do projeto.
+2. Acesse `http://localhost:8080`.
+3. Envie os PDFs de entrada e baixe o relatório gerado.
+
 ## O que a versão web faz
 
 - Lê os PDFs no navegador.

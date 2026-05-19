@@ -2,7 +2,7 @@
 
 ## Tarefa Atual
 
-Ajuste do relatório web para espelhar o layout do legado Python.
+Relatório web ajustado para espelhar o layout do legado Python.
 
 ## Resultado Esperado
 
@@ -15,7 +15,7 @@ Ajuste do relatório web para espelhar o layout do legado Python.
 
 ## Status
 
-- Em validação.
+- Validado no navegador.
 - O fluxo web está estático, roda no navegador e mantém o legado Python apenas como alternativa local.
 
 ## Critério de Conclusão
