@@ -798,16 +798,16 @@ function svgPolygon(points, attrs = {}) {
 function buildLabelBoxSvg(x, y, text, color) {
   const lines = Array.isArray(text) ? text.map((line) => String(line)) : String(text).split(/\n/);
   const widestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
-  const boxWidth = Math.max(30, Math.min(68, (widestLine * 3.4) + 8)); // Slightly increased multiplier
-  const boxHeight = lines.length > 1 ? 14 : 11;
+  const boxWidth = Math.max(20, Math.min(50, (widestLine * 2.8) + 6)); // Reduced width
+  const boxHeight = lines.length > 1 ? 12 : 9; // Reduced height
   const left = x - (boxWidth / 2);
   const top = y - (boxHeight / 2);
   const textLines = lines.map((line, index) => {
-    const lineOffset = lines.length === 1 ? 0.2 : (index === 0 ? -2.5 : 3.0); // Adjusted offsets
+    const lineOffset = lines.length === 1 ? 0 : (index === 0 ? -2.0 : 2.5); // Adjusted offsets
     return svgText(x, y + lineOffset, line, {
       "text-anchor": "middle",
       "dominant-baseline": "middle",
-      "font-size": 5.2,
+      "font-size": 4.5, // Slightly smaller font
       fill: color,
       "font-family": "Helvetica, Arial, sans-serif",
     });
