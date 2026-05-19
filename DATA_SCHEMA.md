@@ -27,6 +27,7 @@ Campos principais:
 - `pspl_db_l`: pressão sonora pico.
 - `microphone_zc_freq_hz`: frequência do microfone.
 - `peak_vector_sum_mm_s`: pico de vibração vetorial; em GeoSonics sem PVS explícito, recebe o maior PPV dos eixos do próprio sismograma.
+- `sismogram_model`: tipo do sismograma detectado (`instantel` ou `geosonics`).
 - `channels`: mapa por eixo (`Tran`, `Vert`, `Long`).
 - `pspl_compliant`: conformidade do PSPL.
 

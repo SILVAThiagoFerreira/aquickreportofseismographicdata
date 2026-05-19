@@ -239,6 +239,7 @@ function parseGeoSonicsSismogramFromText(file, text) {
 
   return {
     source_pdf: file.name,
+    sismogram_model: "geosonics",
     location: location || stripExtension(file.name),
     client,
     user_name: client || operationName,
@@ -295,7 +296,8 @@ function parseChannel(lines, axis) {
 }
 
 function parseSismogramFromText(file, text) {
-  if (detectSismogramModel(text) === "geosonics") {
+  const model = detectSismogramModel(text);
+  if (model === "geosonics") {
     return parseGeoSonicsSismogramFromText(file, text);
   }
 
@@ -316,6 +318,7 @@ function parseSismogramFromText(file, text) {
 
   return {
     source_pdf: file.name,
+    sismogram_model: "instantel",
     location: header.location || stripExtension(file.name),
     client: header.client,
     user_name: header.userName,

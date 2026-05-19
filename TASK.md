@@ -11,6 +11,8 @@ Relatório web com suporte a múltiplos modelos de sismograma.
 - A extração acontece localmente no navegador.
 - O site aceita os modelos Instantel Micromate e GeoSonics da pasta `modelos de sismograma/`.
 - Quando o GeoSonics não traz PVS, o maior PPV dos eixos passa a ser usado como PVS daquele sismograma.
+- Nos gráficos, GeoSonics passa a ser identificado pelo número de série do equipamento.
+- A interface usa os visuais da pasta `VISUAL` para uma apresentação mais forte.
 - O limite de vibração continua vindo de `config.json`.
 - O resumo usa até três registros na primeira página e mantém os demais em páginas complementares.
 - O PDF é montado no navegador por captura HTML/SVG com bibliotecas locais.

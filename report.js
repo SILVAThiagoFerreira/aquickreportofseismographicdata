@@ -608,6 +608,13 @@ function chartLabel(text) {
   return ellipsis(label, 18);
 }
 
+function chartLabelForRecord(record) {
+  if (record?.sismogram_model === "geosonics" && record.serial_number) {
+    return ellipsis(`Serial No: ${record.serial_number}`, 24);
+  }
+  return chartLabel(record?.location);
+}
+
 function frequencyValue(value) {
   if (value == null) {
     return 1;
@@ -1022,7 +1029,7 @@ function buildPsplChartSvg(records) {
     displayPoints.push({
       distance,
       value: record.pspl_db_l,
-      label: chartLabel(record.location),
+      label: chartLabelForRecord(record),
       color: colors[recordIndex % colors.length],
       marker: markerTypes[recordIndex % markerTypes.length],
     });
@@ -1214,7 +1221,7 @@ function buildPpvChartSvg(records) {
     plottedPoints.push({
       freq,
       ppv,
-      label: chartLabel(record.location),
+      label: chartLabelForRecord(record),
       color: markerColors[index % markerColors.length],
       marker: markerTypes[index % markerTypes.length],
     });
@@ -1649,4 +1656,4 @@ export async function buildReportBlob(records, config, logoDataUrl) {
   }
 }
 
-export { psplLabelPositions, ppvLabelPositions };
+export { chartLabelForRecord, psplLabelPositions, ppvLabelPositions };

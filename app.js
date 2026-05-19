@@ -474,6 +474,7 @@ function renderLastRecord(record) {
   const fields = [
     ["Cliente", getPrimaryClient([record])],
     ["Operação", record.operation_name ?? "N/D"],
+    ["Modelo", formatSismogramModel(record)],
     ["Número de série", record.serial_number ?? "N/D"],
     ["Bateria", record.battery_level ?? "N/D"],
     ["Calibração", record.unit_calibration ?? "N/D"],
@@ -526,6 +527,16 @@ function formatMicrophoneValue(record) {
     return "N/D";
   }
   return `${formatFrequency(record.microphone_zc_freq_hz, 1)} Hz`;
+}
+
+function formatSismogramModel(record) {
+  if (record.sismogram_model === "geosonics") {
+    return "GeoSonics";
+  }
+  if (record.sismogram_model === "instantel") {
+    return "Instantel";
+  }
+  return "N/D";
 }
 
 function createEmptyRow(message) {

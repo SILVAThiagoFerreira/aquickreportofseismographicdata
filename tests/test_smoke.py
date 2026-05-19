@@ -402,6 +402,7 @@ process.stdout.write(JSON.stringify({ pspl, ppv }));
             self.assertEqual(record["client"], "CMOC")
             self.assertEqual(record["user_name"], "CMOC")
             self.assertEqual(record["operation_name"], "ENAEX")
+            self.assertEqual(record["sismogram_model"], "geosonics")
             self.assertEqual(record["event_date"], "2026-05-14")
             self.assertAlmostEqual(record["pspl_db_l"], 126.0, places=1)
             self.assertAlmostEqual(record["microphone_zc_freq_hz"], 11.1, places=1)
@@ -472,10 +473,39 @@ process.stdout.write(JSON.stringify(record));
             record = json.loads(completed.stdout)
 
         self.assertEqual(record["location"], "NORDESTE")
+        self.assertEqual(record["sismogram_model"], "geosonics")
         self.assertAlmostEqual(record["channels"]["Long"]["ppv_mm_s"], 0.64, places=2)
         self.assertAlmostEqual(record["channels"]["Vert"]["ppv_mm_s"], 0.51, places=2)
         self.assertAlmostEqual(record["channels"]["Tran"]["ppv_mm_s"], 0.38, places=2)
         self.assertAlmostEqual(record["peak_vector_sum_mm_s"], 0.64, places=2)
+
+    def test_report_uses_serial_number_for_geosonics_chart_labels(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        import json
+        import subprocess
+
+        script = r"""
+import { chartLabelForRecord } from './report.js';
+
+const label = chartLabelForRecord({
+  sismogram_model: 'geosonics',
+  serial_number: '28043 v5.29',
+  location: 'NORDESTE',
+});
+
+process.stdout.write(JSON.stringify({ label }));
+"""
+
+        completed = subprocess.run(
+            ["node", "--input-type=module", "-e", script],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        result = json.loads(completed.stdout)
+
+        self.assertEqual(result["label"], "Serial No: 28043 v5.29")
 
 
 if __name__ == "__main__":

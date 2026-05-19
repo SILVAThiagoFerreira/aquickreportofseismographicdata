@@ -19,6 +19,8 @@
 - Lê os PDFs no navegador.
 - Detecta automaticamente os layouts Instantel Micromate e GeoSonics.
 - Quando um GeoSonics não traz PVS explícito, usa o maior PPV dos eixos como valor de PVS do sismograma.
+- Em GeoSonics, os pontos dos gráficos são etiquetados com o número de série do sismograma.
+- A interface usa os ativos da pasta `VISUAL` para uma apresentação mais alinhada à Enaex.
 - Valida a entrada antes de processar.
 - Monta o PDF no navegador com páginas HTML/SVG capturadas por `html2canvas` local.
 - Gera um PDF final com resumo e páginas complementares quando necessário.

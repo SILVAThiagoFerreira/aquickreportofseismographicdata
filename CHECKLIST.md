@@ -23,6 +23,7 @@
 - [x] Os PDFs são ordenados alfabeticamente antes do processamento.
 - [x] O parser suporta Instantel Micromate e GeoSonics com o mesmo relatório.
 - [x] GeoSonics sem PVS explícito usa o maior PPV dos eixos como PVS do registro.
+- [x] GeoSonics usa o número de série como rótulo dos pontos no gráfico.
 - [x] O status de vibração abaixo/acima do limite aparece no PDF e na interface.
 - [x] PDFs com mais de três registros geram páginas complementares sem perda de dados.
 - [x] O fluxo Python permanece apenas como legado.

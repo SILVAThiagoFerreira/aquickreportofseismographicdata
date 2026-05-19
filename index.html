@@ -16,7 +16,7 @@
   <main class="app-shell">
     <section class="panel hero-panel">
       <div class="brand-row">
-        <img class="brand-logo" src="./ICONE/Enaex Stronger Bonds Logo.png" alt="Logotipo da Enaex">
+        <img class="brand-logo" src="./VISUAL/Logo enaex sem texto.png" alt="Enaex">
         <div class="brand-copy">
           <p class="eyebrow">GitHub Pages</p>
           <h1>Report Sismografia</h1>
@@ -24,10 +24,57 @@
         </div>
       </div>
 
-      <p class="lead">
-        Envie um ou mais sismogramas em PDF e gere o relatório diretamente no navegador.
-        Nenhum arquivo sai do seu computador.
-      </p>
+      <div class="hero-chip-row" aria-label="Resumo da interface">
+        <span class="hero-chip">Browser only</span>
+        <span class="hero-chip">GeoSonics + Instantel</span>
+        <span class="hero-chip">Serial tags no gráfico</span>
+      </div>
+
+      <div class="hero-stage">
+        <div class="hero-stage-copy">
+          <p class="hero-kicker">Visual Enaex</p>
+          <p class="lead">
+            Envie um ou mais sismogramas em PDF e gere o relatório diretamente no navegador.
+            Nenhum arquivo sai do seu computador.
+          </p>
+          <div class="hero-metrics">
+            <article class="hero-metric">
+              <span class="hero-metric-label">Fluxo</span>
+              <strong>Sem backend</strong>
+            </article>
+            <article class="hero-metric">
+              <span class="hero-metric-label">Saída</span>
+              <strong>PDF baixável</strong>
+            </article>
+            <article class="hero-metric">
+              <span class="hero-metric-label">Detalhe</span>
+              <strong>Modelos validados</strong>
+            </article>
+          </div>
+        </div>
+
+        <div class="hero-stage-art" aria-hidden="true">
+          <article class="hero-art-card hero-art-card--primary">
+            <div class="hero-art-copy">
+              <span class="hero-art-kicker">Identidade visual</span>
+              <strong>Assinatura Enaex</strong>
+              <p>Interface construída com os ativos da pasta <code>VISUAL</code>.</p>
+            </div>
+            <img class="hero-art-logo" src="./VISUAL/Enaex%20Brasil%20-%20White.png" alt="">
+          </article>
+
+          <div class="hero-art-grid">
+            <article class="hero-art-card hero-art-card--secondary">
+              <img class="hero-art-mini-logo" src="./VISUAL/LOGO%20STRONGER%20BONDS.png" alt="">
+              <p>Resumo rápido para triagem e conferência.</p>
+            </article>
+            <article class="hero-art-card hero-art-card--tertiary">
+              <img class="hero-art-mini-logo hero-art-mini-logo--compact" src="./VISUAL/enaex-sa--600.png" alt="">
+              <p>Pronto para GitHub Pages, com leitura local.</p>
+            </article>
+          </div>
+        </div>
+      </div>
 
       <div class="dropzone" id="dropzone">
         <input id="file-input" type="file" accept="application/pdf,.pdf" multiple hidden>

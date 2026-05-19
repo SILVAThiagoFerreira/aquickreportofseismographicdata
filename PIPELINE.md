@@ -8,6 +8,7 @@
 4. Ler o texto de cada PDF com PDF.js.
 5. Detectar automaticamente o layout suportado e extrair os campos técnicos normalizados.
    - Em GeoSonics, quando o `Peak Vector Sum` não existir no PDF, usar o maior PPV dos eixos como PVS do registro.
+   - Em GeoSonics, usar o `Serial No` como rótulo dos pontos nos gráficos.
 6. Validar se há registros processáveis.
 7. Montar o relatório PDF com a primeira página de resumo.
 8. Adicionar páginas complementares quando houver mais de três registros.
