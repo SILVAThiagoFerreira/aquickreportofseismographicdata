@@ -642,6 +642,34 @@ function ppvForward(values) {
   return scalarInput ? transformed[0] : transformed;
 }
 
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function positionLabelNearPoint(pointX, pointY, index, count, options = {}) {
+  const {
+    minX = 0.08,
+    maxX = 0.92,
+    minY = 0.08,
+    maxY = 0.92,
+    xOffsetNear = 0.06,
+    xOffsetFar = 0.12,
+    yOffsetNear = 0.08,
+    yOffsetFar = 0.08,
+    xSpread = 0.01,
+    ySpread = 0.02,
+  } = options;
+
+  const spread = index - ((count - 1) / 2);
+  const xOffset = pointX < 0.5 ? xOffsetNear : -xOffsetFar;
+  const yOffset = pointY < 0.5 ? yOffsetNear : -yOffsetFar;
+
+  return {
+    xFrac: clamp(pointX + xOffset + (spread * xSpread), minX, maxX),
+    yFrac: clamp(pointY + yOffset + (spread * ySpread), minY, maxY),
+  };
+}
+
 function psplLabelPositions(points, axisMax) {
   if (!points.length) {
     return [];
@@ -649,48 +677,27 @@ function psplLabelPositions(points, axisMax) {
 
   const sortedPoints = [...points].sort((left, right) => left.distance - right.distance);
   const count = sortedPoints.length;
-  const minX = 0.10;
-  const maxX = 0.90;
-  const minGap = 0.22;
-  const ySlotsByCount = {
-    1: [0.82],
-    2: [0.88, 0.76],
-    3: [0.90, 0.80, 0.70],
-  };
-  const ySlots = ySlotsByCount[count] ?? Array.from({ length: count }, (_, index) => 0.90 - ((0.20 * index) / Math.max(count - 1, 1)));
+  const safeAxisMax = Math.max(axisMax, 1);
 
-  const desiredX = sortedPoints.map(({ distance }) => {
-    const normalized = distance / Math.max(axisMax, 1);
-    return Math.min(Math.max(normalized, minX), maxX);
+  return sortedPoints.map((point, index) => {
+    const pointX = clamp(point.distance / safeAxisMax, 0.08, 0.92);
+    const pointY = clamp(1 - (point.pspl / 160), 0.08, 0.92);
+    return {
+      ...point,
+      ...positionLabelNearPoint(pointX, pointY, index, count, {
+        minX: 0.08,
+        maxX: 0.92,
+        minY: 0.10,
+        maxY: 0.90,
+        xOffsetNear: 0.06,
+        xOffsetFar: 0.10,
+        yOffsetNear: 0.08,
+        yOffsetFar: 0.08,
+        xSpread: 0.012,
+        ySpread: 0.018,
+      }),
+    };
   });
-
-  const adjustedX = desiredX.slice();
-  for (let index = 1; index < count; index += 1) {
-    adjustedX[index] = Math.max(adjustedX[index], adjustedX[index - 1] + minGap);
-  }
-
-  const overflow = adjustedX[count - 1] - maxX;
-  if (overflow > 0) {
-    for (let index = 0; index < count; index += 1) {
-      adjustedX[index] -= overflow;
-    }
-    for (let index = count - 2; index >= 0; index -= 1) {
-      adjustedX[index] = Math.min(adjustedX[index], adjustedX[index + 1] - minGap);
-    }
-  }
-
-  const underflow = minX - adjustedX[0];
-  if (underflow > 0) {
-    for (let index = 0; index < count; index += 1) {
-      adjustedX[index] += underflow;
-    }
-  }
-
-  return sortedPoints.map((point, index) => ({
-    ...point,
-    xFrac: Math.min(Math.max(adjustedX[index], minX), maxX),
-    yFrac: ySlots[index],
-  }));
 }
 
 function ppvLabelPositions(points) {
@@ -700,50 +707,29 @@ function ppvLabelPositions(points) {
 
   const sortedPoints = [...points].sort((left, right) => left.freq - right.freq);
   const count = sortedPoints.length;
-  const minX = 0.42;
-  const maxX = 0.82;
-  const minGap = 0.19;
-  const ySlotsByCount = {
-    1: [0.10],
-    2: [0.15, 0.08],
-    3: [0.18, 0.12, 0.06],
-  };
-  const ySlots = ySlotsByCount[count] ?? Array.from({ length: count }, (_, index) => 0.18 - ((0.12 * index) / Math.max(count - 1, 1)));
-
   const logMin = Math.log10(1);
   const logMax = Math.log10(1000);
-  const desiredX = sortedPoints.map(({ freq }) => {
-    const normalized = (Math.log10(Math.max(freq, 1)) - logMin) / (logMax - logMin);
-    return Math.min(Math.max(normalized, minX), maxX);
+  const yMax = ppvForward(60);
+
+  return sortedPoints.map((point, index) => {
+    const pointX = clamp((Math.log10(Math.max(point.freq, 1)) - logMin) / (logMax - logMin), 0.08, 0.92);
+    const pointY = clamp(1 - (ppvForward(point.ppv) / yMax), 0.08, 0.92);
+    return {
+      ...point,
+      ...positionLabelNearPoint(pointX, pointY, index, count, {
+        minX: 0.08,
+        maxX: 0.92,
+        minY: 0.08,
+        maxY: 0.92,
+        xOffsetNear: 0.06,
+        xOffsetFar: 0.12,
+        yOffsetNear: 0.08,
+        yOffsetFar: 0.08,
+        xSpread: 0.010,
+        ySpread: 0.016,
+      }),
+    };
   });
-
-  const adjustedX = desiredX.slice();
-  for (let index = 1; index < count; index += 1) {
-    adjustedX[index] = Math.max(adjustedX[index], adjustedX[index - 1] + minGap);
-  }
-
-  const overflow = adjustedX[count - 1] - maxX;
-  if (overflow > 0) {
-    for (let index = 0; index < count; index += 1) {
-      adjustedX[index] -= overflow;
-    }
-    for (let index = count - 2; index >= 0; index -= 1) {
-      adjustedX[index] = Math.min(adjustedX[index], adjustedX[index + 1] - minGap);
-    }
-  }
-
-  const underflow = minX - adjustedX[0];
-  if (underflow > 0) {
-    for (let index = 0; index < count; index += 1) {
-      adjustedX[index] += underflow;
-    }
-  }
-
-  return sortedPoints.map((point, index) => ({
-    ...point,
-    xFrac: Math.min(Math.max(adjustedX[index], minX), maxX),
-    yFrac: ySlots[index],
-  }));
 }
 
 function hexagonPoints(centerX, centerY, radius) {
@@ -1518,3 +1504,5 @@ export async function buildReportBlob(records, config, logoDataUrl) {
     root.remove();
   }
 }
+
+export { psplLabelPositions, ppvLabelPositions };

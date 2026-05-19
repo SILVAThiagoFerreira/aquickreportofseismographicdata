@@ -119,6 +119,89 @@ class SmokeTests(unittest.TestCase):
         lines = _overview_lines([record], datetime(2026, 5, 13), status_text)
         self.assertIn("⚠️ Índices de vibração: acima de 0,8 mm/s.", lines)
 
+    def test_report_chart_labels_stay_close_to_points(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        import json
+        import subprocess
+
+        try:
+            subprocess.run(["node", "--version"], check=True, capture_output=True, text=True)
+        except FileNotFoundError:
+            self.skipTest("node not installed")
+
+        script = r"""
+import { ppvLabelPositions, psplLabelPositions } from './report.js';
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const ppvForward = (value) => {
+  const floor = 0.05;
+  const breakPoint = 0.1;
+  const lowBand = 0.5;
+  const offset = lowBand - breakPoint;
+  if (value <= breakPoint) {
+    const safe = Math.max(value, floor);
+    return lowBand * (Math.log(safe / floor) / Math.log(breakPoint / floor));
+  }
+  return value + offset;
+};
+
+const axisMax = 7000;
+const psplPoints = [
+  { distance: 1000, pspl: 118, label: 'A', color: '#111111', marker: 'o' },
+  { distance: 3000, pspl: 132, label: 'B', color: '#222222', marker: 'o' },
+  { distance: 5000, pspl: 124, label: 'C', color: '#333333', marker: 'o' },
+];
+const ppvPoints = [
+  { freq: 4, ppv: 0.6, label: 'A', color: '#111111', marker: 'o' },
+  { freq: 40, ppv: 1.2, label: 'B', color: '#222222', marker: 'o' },
+  { freq: 400, ppv: 3.0, label: 'C', color: '#333333', marker: 'o' },
+];
+
+const measure = (label, point) => Math.hypot(label.xFrac - point.x, label.yFrac - point.y);
+
+const psplPoint = (item) => ({
+  x: clamp(item.distance / axisMax, 0.08, 0.92),
+  y: clamp(1 - (item.pspl / 160), 0.08, 0.92),
+});
+
+const ppvPoint = (item) => {
+  const logMin = Math.log10(1);
+  const logMax = Math.log10(1000);
+  return {
+    x: clamp((Math.log10(Math.max(item.freq, 1)) - logMin) / (logMax - logMin), 0.08, 0.92),
+    y: clamp(1 - (ppvForward(item.ppv) / ppvForward(60)), 0.08, 0.92),
+  };
+};
+
+const pspl = psplLabelPositions(psplPoints, axisMax).map((label) => ({
+  label: label.label,
+  distance: measure(label, psplPoint(psplPoints.find((item) => item.label === label.label))),
+}));
+
+const ppv = ppvLabelPositions(ppvPoints).map((label) => ({
+  label: label.label,
+  distance: measure(label, ppvPoint(ppvPoints.find((item) => item.label === label.label))),
+}));
+
+process.stdout.write(JSON.stringify({ pspl, ppv }));
+"""
+
+        completed = subprocess.run(
+            ["node", "--input-type=module", "-e", script],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        result = json.loads(completed.stdout)
+
+        for item in result["pspl"]:
+            self.assertLess(item["distance"], 0.22)
+
+        for item in result["ppv"]:
+            self.assertLess(item["distance"], 0.22)
+
     def test_report_adds_appendix_page_for_extra_records(self) -> None:
         root = Path(__file__).resolve().parents[1]
         import sys
