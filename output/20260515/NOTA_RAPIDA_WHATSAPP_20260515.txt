@@ -1,0 +1,32 @@
+📊 *MONITORAMENTO SISMOGRÁFICO - ENAEX*
+---
+🏢 *Cliente:* US MINERAÇÃO VALE-VERDE
+📅 *Data:* 15/05/2026
+
+Prezados,
+Seguem os níveis de vibração e pressão acústica registrados no evento. Os detalhes técnicos completos podem ser consultados no relatório (imagem) em anexo.
+✅ Índices de vibração: abaixo de 0,8 mm/s.
+
+🟢 *BARRAGEM DE REJEITOS*
+   • PVS: 0,094 mm/s
+   • PSPL: 93,2 dB(L)
+
+🟢 *COMUNIDADE DE LAGOA DO MEL*
+   • PVS: 0,061 mm/s
+   • PSPL: 110,3 dB(L)
+
+🟢 *COMUNIDADE DE PIXILINGA*
+   • PVS: 0,065 mm/s
+   • PSPL: 99,5 dB(L)
+
+🟢 *TESTE - INTERMEDIARIO - LM*
+   • PVS: 0,178 mm/s
+   • PSPL: 112,6 dB(L)
+
+---
+✅ *STATUS:* Todos os parâmetros estão em conformidade com a *NBR 9653:2018*.
+
+🖼️ _Consulte a imagem anexa para mais detalhes._
+
+Atenciosamente,
+*Enaex*

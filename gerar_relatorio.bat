@@ -1,5 +1,5 @@
 @echo off
 cd /d "%~dp0"
-python main.py generate
+.\.venv\Scripts\python.exe main.py generate
 echo.
 pause

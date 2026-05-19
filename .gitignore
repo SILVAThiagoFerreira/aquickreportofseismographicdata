@@ -6,3 +6,6 @@ node_modules/
 *.log
 desktop.ini
 Thumbs.db
+
+.gemini/
+gha-creds-*.json

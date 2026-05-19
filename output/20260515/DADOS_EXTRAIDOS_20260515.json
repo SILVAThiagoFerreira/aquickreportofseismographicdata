@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-15T15:52:21",
-  "input_dir": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input",
+  "generated_at": "2026-05-19T08:38:02",
+  "input_dir": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA - GIT\\input",
   "files": [
     {
-      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-BARRAGEM DE REJEITOS.pdf",
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA - GIT\\input\\20260515-BARRAGEM DE REJEITOS.pdf",
       "location": "BARRAGEM DE REJEITOS",
       "client": "MVV",
       "user_name": "MINERACAO VALE-VERDE",
@@ -54,7 +54,7 @@
       "pspl_compliant": true
     },
     {
-      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-COMUNIDADE DE LAGOA DO MEL.pdf",
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA - GIT\\input\\20260515-COMUNIDADE DE LAGOA DO MEL.pdf",
       "location": "COMUNIDADE DE LAGOA DO MEL",
       "client": "MVV",
       "user_name": "MINERA AO VALE-VERDE",
@@ -105,7 +105,7 @@
       "pspl_compliant": true
     },
     {
-      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-COMUNIDADE DE PIXILINGA.pdf",
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA - GIT\\input\\20260515-COMUNIDADE DE PIXILINGA.pdf",
       "location": "COMUNIDADE DE PIXILINGA",
       "client": "MVV",
       "user_name": "MINERACAO VALE VERDE",
@@ -156,7 +156,7 @@
       "pspl_compliant": true
     },
     {
-      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA\\input\\20260515-TESTE - INTERMEDIARIO - LM.pdf",
+      "source_pdf": "C:\\Users\\ferre\\OneDrive\\Documentos\\PROJETOS PROGRAMAÇÃO\\01. ENAEX\\REPORT SISMOGRAFIA - GIT\\input\\20260515-TESTE - INTERMEDIARIO - LM.pdf",
       "location": "TESTE - INTERMEDIARIO - LM",
       "client": "MVV",
       "user_name": "MINERA AO VALE-VERDE",

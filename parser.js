@@ -150,6 +150,20 @@ function extractTripletValues(lines, prefix) {
   return [values[0] ?? null, values[1] ?? null, values[2] ?? null];
 }
 
+function getMaxPpvValue(channels) {
+  let bestValue = null;
+  for (const axis of CHANNEL_ORDER) {
+    const value = channels[axis]?.ppv_mm_s ?? null;
+    if (value == null) {
+      continue;
+    }
+    if (bestValue == null || value > bestValue) {
+      bestValue = value;
+    }
+  }
+  return bestValue;
+}
+
 function mmDdYyyyToIso(dateStr) {
   const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(dateStr).trim());
   if (!match) {
@@ -197,7 +211,7 @@ function parseGeoSonicsSismogramFromText(file, text) {
   const microphoneZcFreqHz = microphoneMatch ? parseFrequencyToken(microphoneMatch[1]) : null;
 
   const peakVectorMatch = new RegExp("Peak Vector Sum\\s*:?[\\s\\S]*?([0-9.,>]+)\\s*mm\\/s", "i").exec(text);
-  const peakVectorSumMmS = peakVectorMatch ? parseFloatValue(peakVectorMatch[1]) : null;
+  const peakVectorValue = peakVectorMatch ? parseFloatValue(peakVectorMatch[1]) : null;
 
   const axisIndexByChannel = {
     Tran: 1,
@@ -220,6 +234,8 @@ function parseGeoSonicsSismogramFromText(file, text) {
       compliant: ppv == null || limit == null ? null : ppv <= limit,
     }];
   }));
+  // GeoSonics pode omitir o PVS explícito; nesse caso usamos o maior PPV dos eixos.
+  const peakVectorSumMmS = peakVectorValue ?? getMaxPpvValue(channels);
 
   return {
     source_pdf: file.name,

@@ -30,6 +30,7 @@ Processar PDFs de sismogramas enviados pelo usuário no navegador, extrair os da
 - A ordem dos PDFs segue ordenação alfabética pelo nome do arquivo.
 - A entrada é validada antes do processamento.
 - Se não houver PDFs válidos, a execução falha com erro explícito.
+- Em GeoSonics, quando o PDF não traz `Peak Vector Sum`, o PVS do registro é inferido pelo maior PPV entre os eixos de vibração do mesmo sismograma.
 - Os índices de vibração exibem explicitamente o status abaixo/acima do limite configurado em `config.json` no PDF e na interface.
 - O resumo exibe até três registros na primeira página e desloca os demais para páginas complementares.
 - O processamento ocorre apenas no navegador; nenhum arquivo é enviado para servidor.

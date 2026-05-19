@@ -416,6 +416,67 @@ process.stdout.write(JSON.stringify({ pspl, ppv }));
             except Exception:
                 server.kill()
 
+    def test_parser_falls_back_to_highest_axis_when_geosonics_pvs_is_missing(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        import json
+        import subprocess
+        import tempfile
+        lines = [
+            "GeoSonics Inc. Seismic Analysis",
+            "Velocity Waveform Analysis",
+            "Serial No: 28043 v5.29",
+            "Date: 05/14/2026 12:45:16",
+            "Client: CMOC",
+            "Operation: ENAEX",
+            "Location: NORDESTE",
+            "PPV (mm/s) 0,64 0,38 0,51",
+            "FREQ (Hz) 8,3 9,6 8,5",
+            "Peak Air Pressure: 126 db",
+            "38,46144 PSI @ 11,1 Hz",
+            "Shaketable Calibrated: 12/18/2025",
+            "By: GeoSonics Inc.",
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pdf_path = Path(tmpdir) / "GEOSONIC_NO_PVS.pdf"
+
+            import fitz
+
+            document = fitz.open()
+            page = document.new_page(width=595, height=842)
+            y_position = 72
+            for line in lines:
+                page.insert_text((50, y_position), line, fontsize=11, fontname="helv")
+                y_position += 16
+            document.save(str(pdf_path))
+            document.close()
+
+            script = r"""
+import { readFile } from 'node:fs/promises';
+import { parsePdfFile } from './parser.js';
+
+const sourcePath = process.argv.at(-1);
+const data = await readFile(sourcePath);
+const file = new File([data], 'GEOSONIC_NO_PVS.pdf', { type: 'application/pdf' });
+const record = await parsePdfFile(file);
+process.stdout.write(JSON.stringify(record));
+"""
+
+            completed = subprocess.run(
+                ["node", "--input-type=module", "-e", script, str(pdf_path)],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            record = json.loads(completed.stdout)
+
+        self.assertEqual(record["location"], "NORDESTE")
+        self.assertAlmostEqual(record["channels"]["Long"]["ppv_mm_s"], 0.64, places=2)
+        self.assertAlmostEqual(record["channels"]["Vert"]["ppv_mm_s"], 0.51, places=2)
+        self.assertAlmostEqual(record["channels"]["Tran"]["ppv_mm_s"], 0.38, places=2)
+        self.assertAlmostEqual(record["peak_vector_sum_mm_s"], 0.64, places=2)
+
 
 if __name__ == "__main__":
     unittest.main()
