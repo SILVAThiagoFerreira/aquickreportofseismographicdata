@@ -84,6 +84,11 @@ const REPORT_STYLES = `
   background: ${COLORS.light};
   color: ${COLORS.text};
   font-family: Helvetica, Arial, sans-serif;
+  font-size: 2.5mm;
+  line-height: 1.2;
+  text-rendering: geometricPrecision;
+  letter-spacing: 0.001em;
+  word-spacing: 0.001em;
 }
 
 .report-topline {
@@ -764,7 +769,14 @@ function buildCornerMotifSvg() {
 }
 
 function svgText(x, y, text, attrs = {}) {
-  return svgTag("text", { x, y, ...attrs }, escapeHtml(text));
+  return svgTag("text", {
+    x,
+    y,
+    "text-rendering": "geometricPrecision",
+    "letter-spacing": "0.001em",
+    "word-spacing": "0.001em",
+    ...attrs
+  }, escapeHtml(text));
 }
 
 function svgLine(x1, y1, x2, y2, attrs = {}) {
@@ -786,12 +798,12 @@ function svgPolygon(points, attrs = {}) {
 function buildLabelBoxSvg(x, y, text, color) {
   const lines = Array.isArray(text) ? text.map((line) => String(line)) : String(text).split(/\n/);
   const widestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
-  const boxWidth = Math.max(30, Math.min(66, (widestLine * 3.2) + 8));
+  const boxWidth = Math.max(30, Math.min(68, (widestLine * 3.4) + 8)); // Slightly increased multiplier
   const boxHeight = lines.length > 1 ? 14 : 11;
   const left = x - (boxWidth / 2);
   const top = y - (boxHeight / 2);
   const textLines = lines.map((line, index) => {
-    const lineOffset = lines.length === 1 ? 0.3 : (index === 0 ? -2.2 : 3.2);
+    const lineOffset = lines.length === 1 ? 0.2 : (index === 0 ? -2.5 : 3.0); // Adjusted offsets
     return svgText(x, y + lineOffset, line, {
       "text-anchor": "middle",
       "dominant-baseline": "middle",
