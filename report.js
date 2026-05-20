@@ -930,6 +930,10 @@ function svgLine(x1, y1, x2, y2, attrs = {}) {
   return svgTag("line", { x1, y1, x2, y2, ...attrs });
 }
 
+function svgPath(d, attrs = {}) {
+  return svgTag("path", { d, ...attrs });
+}
+
 function svgRect(x, y, width, height, attrs = {}) {
   return svgTag("rect", { x, y, width, height, ...attrs });
 }
@@ -969,6 +973,38 @@ function buildLabelBoxSvg(x, y, text, color, metrics = null) {
     })}
     ${textLines}
   `;
+}
+
+function buildLabelConnectorSvg(pointX, pointY, connectorX, connectorY, color) {
+  const dx = connectorX - pointX;
+  const dy = connectorY - pointY;
+  const distance = Math.hypot(dx, dy);
+  if (distance < 7) {
+    return "";
+  }
+
+  const markerClearance = Math.min(5.2, distance * 0.35);
+  const labelClearance = Math.min(2.2, distance * 0.16);
+  const startX = pointX + ((dx / distance) * markerClearance);
+  const startY = pointY + ((dy / distance) * markerClearance);
+  const endX = connectorX - ((dx / distance) * labelClearance);
+  const endY = connectorY - ((dy / distance) * labelClearance);
+  const bend = Math.min(5.5, Math.max(1.6, distance * 0.08));
+  const curveDirection = dx * dy >= 0 ? 1 : -1;
+  const controlX = ((startX + endX) / 2) - ((dy / distance) * bend * curveDirection);
+  const controlY = ((startY + endY) / 2) + ((dx / distance) * bend * curveDirection);
+
+  return svgPath(
+    `M ${startX.toFixed(2)} ${startY.toFixed(2)} Q ${controlX.toFixed(2)} ${controlY.toFixed(2)} ${endX.toFixed(2)} ${endY.toFixed(2)}`,
+    {
+      fill: "none",
+      stroke: color,
+      "stroke-width": 0.85,
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      opacity: 0.72,
+    },
+  );
 }
 
 function buildMarkerSvg(kind, x, y, size, color) {
@@ -1089,11 +1125,10 @@ function buildPsplChartSvg(records) {
     const y = margin.top + (label.pointYFrac * plotHeight);
     const labelX = margin.left + (label.xFrac * plotWidth);
     const labelY = margin.top + (label.yFrac * plotHeight);
+    const connectorX = margin.left + (label.connectorXFrac * plotWidth);
+    const connectorY = margin.top + (label.connectorYFrac * plotHeight);
     return `
-      ${svgLine(x, y, margin.left + (label.connectorXFrac * plotWidth), margin.top + (label.connectorYFrac * plotHeight), {
-        stroke: label.color,
-        "stroke-width": 0.7,
-      })}
+      ${buildLabelConnectorSvg(x, y, connectorX, connectorY, label.color)}
       ${buildLabelBoxSvg(labelX, labelY, label.lines, label.color, label)}
     `;
   }).join("");
@@ -1293,11 +1328,10 @@ function buildPpvChartSvg(records) {
     const y = margin.top + (label.pointYFrac * plotHeight);
     const labelX = margin.left + (label.xFrac * plotWidth);
     const labelY = margin.top + (label.yFrac * plotHeight);
+    const connectorX = margin.left + (label.connectorXFrac * plotWidth);
+    const connectorY = margin.top + (label.connectorYFrac * plotHeight);
     return `
-      ${svgLine(x, y, margin.left + (label.connectorXFrac * plotWidth), margin.top + (label.connectorYFrac * plotHeight), {
-        stroke: label.color,
-        "stroke-width": 0.7,
-      })}
+      ${buildLabelConnectorSvg(x, y, connectorX, connectorY, label.color)}
       ${buildLabelBoxSvg(labelX, labelY, label.lines, label.color, label)}
     `;
   }).join("");
