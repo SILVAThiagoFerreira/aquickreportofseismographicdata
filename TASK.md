@@ -16,6 +16,9 @@ Relatório web com suporte a múltiplos modelos de sismograma.
 - O limite de vibração continua vindo de `config.json`.
 - O resumo usa até três registros na primeira página e mantém os demais em páginas complementares.
 - O PDF é montado no navegador por captura HTML/SVG com bibliotecas locais.
+- O visual do painel web e dos gráficos do PDF foi refinado para reduzir sobreposição e melhorar a leitura.
+- O refinamento visual inclui redistribuição mais agressiva dos rótulos, maior respiro tipográfico e contraste mais limpo no relatório.
+- A revisão avançou para ajuste fino de proporções de página, títulos, caixas e cartões do PDF.
 
 ## Status
 

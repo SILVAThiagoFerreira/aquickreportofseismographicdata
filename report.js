@@ -76,20 +76,20 @@ const REPORT_STYLES = `
   box-sizing: border-box;
 }
 
-.report-page {
-  position: relative;
-  width: ${PAGE_W_MM}mm;
-  height: ${PAGE_H_MM}mm;
-  overflow: hidden;
-  background: ${COLORS.light};
-  color: ${COLORS.text};
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 2.5mm;
-  line-height: 1.2;
-  text-rendering: geometricPrecision;
-  letter-spacing: 0.001em;
-  word-spacing: 0.001em;
-}
+  .report-page {
+    position: relative;
+    width: ${PAGE_W_MM}mm;
+    height: ${PAGE_H_MM}mm;
+    overflow: hidden;
+    background: ${COLORS.light};
+    color: ${COLORS.text};
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 2.42mm;
+    line-height: 1.16;
+    text-rendering: geometricPrecision;
+    letter-spacing: 0.001em;
+    word-spacing: 0.001em;
+  }
 
 .report-topline {
   position: absolute;
@@ -154,17 +154,17 @@ const REPORT_STYLES = `
   color: ${COLORS.green};
 }
 
-.report-title-card {
-  position: absolute;
-  left: ${CONTENT_X_MM}mm;
-  top: ${COVER_TITLE_TOP_MM}mm;
-  width: ${CONTENT_W_MM}mm;
-  height: 30mm;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  z-index: 1;
+  .report-title-card {
+    position: absolute;
+    left: ${CONTENT_X_MM}mm;
+    top: ${COVER_TITLE_TOP_MM}mm;
+    width: ${CONTENT_W_MM}mm;
+    height: 30.5mm;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    z-index: 1;
 }
 
 .report-title-strip {
@@ -172,46 +172,46 @@ const REPORT_STYLES = `
   background: #C8C8C8;
 }
 
-.report-title-body {
-  padding: 7mm 7mm 2.8mm;
-}
+  .report-title-body {
+    padding: 6.4mm 7mm 2.7mm;
+  }
 
-.report-title-text {
-  margin: 0;
-  color: ${COLORS.red};
-  font-size: 4.8mm;
-  font-weight: 700;
-  line-height: 1;
-}
+  .report-title-text {
+    margin: 0;
+    color: ${COLORS.red};
+    font-size: 4.35mm;
+    font-weight: 700;
+    line-height: 1;
+  }
 
-.report-title-client {
-  margin-top: 3.2mm;
-  color: #667487;
-  font-size: 3.6mm;
-  font-weight: 700;
-  line-height: 1.05;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .report-title-client {
+    margin-top: 2.8mm;
+    color: #667487;
+    font-size: 3.25mm;
+    font-weight: 700;
+    line-height: 1.03;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.report-title-footer {
-  margin-top: 2.6mm;
-  color: #000;
-  font-size: 2.55mm;
-  font-weight: 700;
-  line-height: 1;
-}
+  .report-title-footer {
+    margin-top: 2.1mm;
+    color: #000;
+    font-size: 2.3mm;
+    font-weight: 700;
+    line-height: 1;
+  }
 
-.report-heading {
+  .report-heading {
   position: absolute;
   left: ${CONTENT_X_MM}mm;
   margin: 0;
   color: #000;
-  font-size: 5.47mm;
-  font-weight: 400;
-  line-height: 1;
-}
+    font-size: 5.15mm;
+    font-weight: 400;
+    line-height: 1;
+  }
 
 .report-heading--summary {
   top: ${COVER_SUMMARY_HEADING_TOP_MM}mm;
@@ -226,36 +226,36 @@ const REPORT_STYLES = `
   left: ${CONTENT_X_MM}mm;
   width: ${CONTENT_W_MM}mm;
   background: #fff;
-  border-radius: 4px;
+  border-radius: 4.5px;
   box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
 .report-box-strip {
-  height: 7.2mm;
+  height: 6.9mm;
 }
 
 .report-box-title {
   position: absolute;
   left: 4mm;
-  top: 1.7mm;
+  top: 1.55mm;
   color: #fff;
-  font-size: 3.45mm;
+  font-size: 3.3mm;
   font-weight: 700;
 }
 
-.report-box-body {
+  .report-box-body {
   position: absolute;
   left: 0;
   right: 0;
-  top: 7.2mm;
+  top: 6.9mm;
   bottom: 0;
-  padding: 3.5mm 4mm 3mm;
-  color: ${COLORS.text};
-  font-size: 2.75mm;
-  line-height: 1.15;
-  overflow: hidden;
-}
+    padding: 3mm 4mm 2.6mm;
+    color: ${COLORS.text};
+    font-size: 2.56mm;
+    line-height: 1.12;
+    overflow: hidden;
+  }
 
 .report-box-line {
   margin: 0 0 1.5mm 0;
@@ -269,24 +269,24 @@ const REPORT_STYLES = `
   color: ${COLORS.red};
 }
 
-.report-conclusion-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 2.08mm;
-  line-height: 1.15;
-}
+  .report-conclusion-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.96mm;
+    line-height: 1.1;
+  }
 
-.report-conclusion-table td {
-  border: 0.12mm solid ${COLORS.line};
-  padding: 1mm 1.2mm;
-  vertical-align: middle;
-}
+  .report-conclusion-table td {
+    border: 0.12mm solid ${COLORS.line};
+    padding: 0.82mm 0.95mm;
+    vertical-align: middle;
+  }
 
-.report-conclusion-table td:first-child {
-  width: 31mm;
-  background: #EAF5D7;
-  font-weight: 700;
-}
+  .report-conclusion-table td:first-child {
+    width: 30mm;
+    background: #EAF5D7;
+    font-weight: 700;
+  }
 
 .report-chart-row {
   position: absolute;
@@ -296,39 +296,39 @@ const REPORT_STYLES = `
   height: 62mm;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6mm;
+  gap: 5.5mm;
 }
 
 .report-chart-panel {
   position: relative;
   background: #fff;
-  border-radius: 4px;
+  border-radius: 4.5px;
   box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
 .report-chart-strip {
-  height: 7.2mm;
+  height: 6.9mm;
   background: ${COLORS.green};
 }
 
-.report-chart-title {
-  position: absolute;
-  left: 4mm;
-  top: 1.7mm;
-  color: #fff;
-  font-size: 3.4mm;
-  font-weight: 700;
-}
+  .report-chart-title {
+    position: absolute;
+    left: 4mm;
+    top: 1.55mm;
+    color: #fff;
+    font-size: 3.15mm;
+    font-weight: 700;
+  }
 
-.report-chart-body {
+  .report-chart-body {
   position: absolute;
   left: 0;
   right: 0;
-  top: 7.2mm;
+  top: 6.9mm;
   bottom: 0;
-  padding: 1.8mm 2mm 1.8mm;
-}
+    padding: 1.35mm 1.45mm 1.35mm;
+  }
 
 .report-chart-svg {
   display: block;
@@ -350,95 +350,95 @@ const REPORT_STYLES = `
   width: ${CONTENT_W_MM}mm;
   height: ${ROW_HEIGHT_MM}mm;
   background: #fff;
-  border-radius: 4px;
+  border-radius: 4.5px;
   box-shadow: 1.3mm 1mm 0 rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
-.report-record-header {
-  height: 5.7mm;
-  background: ${COLORS.dark};
-  color: #fff;
-  padding: 0 4mm;
-  display: flex;
-  align-items: center;
-  font-size: 3.1mm;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .report-record-header {
+    height: 5.55mm;
+    background: ${COLORS.dark};
+    color: #fff;
+    padding: 0 4mm;
+    display: flex;
+    align-items: center;
+    font-size: 2.85mm;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.report-record-body {
-  position: relative;
-  height: 14.1mm;
-  padding: 1.6mm 4mm 0;
-}
+  .report-record-body {
+    position: relative;
+    height: 13.95mm;
+    padding: 1.35mm 4mm 0;
+  }
 
-.report-record-table {
-  width: calc(100% - 47mm);
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 1.9mm;
-  color: ${COLORS.text};
-}
+  .report-record-table {
+    width: calc(100% - 47mm);
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 1.76mm;
+    color: ${COLORS.text};
+  }
 
-.report-record-table td {
-  border: 0.12mm solid ${COLORS.line};
-  padding: 0.7mm 1mm;
-  vertical-align: middle;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  .report-record-table td {
+    border: 0.12mm solid ${COLORS.line};
+    padding: 0.58mm 0.85mm;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
 .report-record-table td:nth-child(odd) {
   background: #EAF5D7;
   font-weight: 700;
 }
 
-.report-record-badge {
+  .report-record-badge {
   position: absolute;
   right: 4mm;
   top: 50%;
   transform: translateY(-50%);
-  width: 34mm;
-  height: 6.2mm;
-  border-radius: 3mm;
+    width: 33.5mm;
+    height: 6mm;
+    border-radius: 3mm;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 2.4mm;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
+    font-size: 2.2mm;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
 
-.report-footer-note {
-  position: absolute;
-  left: ${CONTENT_X_MM}mm;
-  top: 285mm;
-  color: ${COLORS.dark};
-  font-size: 2.54mm;
-}
+  .report-footer-note {
+    position: absolute;
+    left: ${CONTENT_X_MM}mm;
+    top: 285mm;
+    color: ${COLORS.dark};
+    font-size: 2.24mm;
+  }
 
-.report-appendix-title {
+  .report-appendix-title {
   position: absolute;
   left: ${APPENDIX_HEADER_X_MM}mm;
   top: ${APPENDIX_TITLE_TOP_MM}mm;
   margin: 0;
   color: ${COLORS.red};
-  font-size: 4.65mm;
-  font-weight: 700;
-}
+    font-size: 4.18mm;
+    font-weight: 700;
+  }
 
-.report-appendix-meta {
+  .report-appendix-meta {
   position: absolute;
   left: ${APPENDIX_HEADER_X_MM}mm;
   margin: 0;
   color: ${COLORS.muted};
-  font-size: 2.89mm;
-}
+    font-size: 2.58mm;
+  }
 
 .report-appendix-meta--one {
   top: ${APPENDIX_META_ONE_TOP_MM}mm;
@@ -658,8 +658,8 @@ function clamp(value, min, max) {
 function measureLabelBox(lines) {
   const widestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
   return {
-    boxWidth: Math.max(20, Math.min(50, (widestLine * 2.8) + 6)),
-    boxHeight: lines.length > 1 ? 12 : 9,
+    boxWidth: Math.max(18, Math.min(44, (widestLine * 2.35) + 5.2)),
+    boxHeight: lines.length > 1 ? 11.2 : 8.5,
   };
 }
 
@@ -731,14 +731,14 @@ function buildLabelCandidates(pointX, pointY, boxWidthFrac, boxHeightFrac, index
     { dx: 0, dy: -verticalBias },
     { dx: -horizontalBias, dy: -verticalBias },
   ];
-  const tiers = [1, 1.45, 2.0];
-  const offsetXStep = Math.max(0.008, boxWidthFrac * 0.05);
-  const offsetYStep = Math.max(0.008, boxHeightFrac * 0.05);
+  const tiers = [1, 1.4, 2.0];
+  const offsetXStep = Math.max(0.007, boxWidthFrac * 0.05);
+  const offsetYStep = Math.max(0.007, boxHeightFrac * 0.05);
   const candidates = [];
 
   tiers.forEach((tier) => {
-    const gapX = Math.max(0.02, boxWidthFrac * 0.22) * tier;
-    const gapY = Math.max(0.02, boxHeightFrac * 0.34) * tier;
+    const gapX = Math.max(0.022, boxWidthFrac * 0.24) * tier;
+    const gapY = Math.max(0.022, boxHeightFrac * 0.36) * tier;
 
     directions.forEach((direction) => {
       const offsetX = direction.dx === 0
@@ -786,14 +786,16 @@ function placeChartLabels(labelSpecs) {
 
       const overlapArea = placed.reduce((sum, item) => sum + rectIntersectionArea(rect, item.rect), 0);
       const overlapCount = placed.reduce((count, item) => count + (rectsOverlap(rect, item.rect) ? 1 : 0), 0);
-      const desiredGap = Math.max(0.022, spec.boxHeightFrac * 0.55);
+      const desiredGap = Math.max(0.034, spec.boxHeightFrac * 0.78);
       const proximityPenalty = placed.reduce((sum, item) => {
         const gap = rectDistance(rect, item.rect);
-        return sum + (Math.max(0, desiredGap - gap) * 3500);
+        return sum + (Math.max(0, desiredGap - gap) * 7600);
       }, 0);
       const distance = Math.hypot(centerX - spec.pointXFrac, centerY - spec.pointYFrac);
       const edgeDistance = Math.min(centerX - minCenterX, maxCenterX - centerX, centerY - minCenterY, maxCenterY - centerY);
-      const score = (overlapCount * 1000) + (overlapArea * 5000) + proximityPenalty + (distance * 100) - (edgeDistance * 2);
+      const edgePenalty = Math.max(0, 0.045 - edgeDistance) * 12000;
+      const axisPenalty = (centerX < 0.08 || centerX > 0.92 ? 250 : 0) + (centerY < 0.08 || centerY > 0.92 ? 250 : 0);
+      const score = (overlapCount * 2600) + (overlapArea * 11000) + proximityPenalty + (distance * 140) + edgePenalty + axisPenalty;
 
       if (score < bestScore) {
         best = { centerX, centerY, rect };
@@ -802,8 +804,8 @@ function placeChartLabels(labelSpecs) {
     });
 
     if (!best) {
-      const fallbackX = clamp(spec.pointXFrac + (spec.pointXFrac < 0.5 ? 0.08 : -0.08), minCenterX, maxCenterX);
-      const fallbackY = clamp(spec.pointYFrac + (spec.pointYFrac < 0.5 ? 0.08 : -0.08), minCenterY, maxCenterY);
+      const fallbackX = clamp(spec.pointXFrac + (spec.pointXFrac < 0.5 ? 0.11 : -0.11), minCenterX, maxCenterX);
+      const fallbackY = clamp(spec.pointYFrac + (spec.pointYFrac < 0.5 ? 0.1 : -0.1), minCenterY, maxCenterY);
       best = {
         centerX: fallbackX,
         centerY: fallbackY,
@@ -811,14 +813,34 @@ function placeChartLabels(labelSpecs) {
       };
     }
 
-    const connector = connectorPointToRect(spec.pointXFrac, spec.pointYFrac, best.rect);
+    const targetGap = Math.max(0.015, spec.boxHeightFrac * 0.26);
+    let resolvedRect = best.rect;
+    let resolvedCenterX = best.centerX;
+    let resolvedCenterY = best.centerY;
+
+    for (let iteration = 0; iteration < 8; iteration += 1) {
+      const conflicts = placed.filter((item) => rectDistance(resolvedRect, item.rect) < targetGap);
+      if (!conflicts.length) {
+        break;
+      }
+
+      const conflictCenterX = conflicts.reduce((sum, item) => sum + ((item.rect.left + item.rect.right) / 2), 0) / conflicts.length;
+      const conflictCenterY = conflicts.reduce((sum, item) => sum + ((item.rect.top + item.rect.bottom) / 2), 0) / conflicts.length;
+      const moveX = resolvedCenterX >= conflictCenterX ? 0.012 : -0.012;
+      const moveY = resolvedCenterY >= conflictCenterY ? 0.012 : -0.012;
+      resolvedCenterX = clamp(resolvedCenterX + moveX, minCenterX, maxCenterX);
+      resolvedCenterY = clamp(resolvedCenterY + moveY, minCenterY, maxCenterY);
+      resolvedRect = rectFromCenter(resolvedCenterX, resolvedCenterY, spec.boxWidthFrac, spec.boxHeightFrac);
+    }
+
+    const connector = connectorPointToRect(spec.pointXFrac, spec.pointYFrac, resolvedRect);
     placed.push({
       ...spec,
-      xFrac: best.centerX,
-      yFrac: best.centerY,
+      xFrac: resolvedCenterX,
+      yFrac: resolvedCenterY,
       connectorXFrac: connector.x,
       connectorYFrac: connector.y,
-      rect: best.rect,
+      rect: resolvedRect,
     });
   });
 
@@ -952,11 +974,11 @@ function buildLabelBoxSvg(x, y, text, color, metrics = null) {
   const left = x - (boxWidth / 2);
   const top = y - (boxHeight / 2);
   const textLines = lines.map((line, index) => {
-    const lineOffset = lines.length === 1 ? 0 : (index === 0 ? -2.0 : 2.5);
+    const lineOffset = lines.length === 1 ? 0 : (index === 0 ? -1.7 : 2.2);
     return svgText(x, y + lineOffset, line, {
       "text-anchor": "middle",
       "dominant-baseline": "middle",
-      "font-size": 4.5,
+      "font-size": lines.length > 1 ? 4.15 : 4.35,
       fill: color,
       "font-family": "Helvetica, Arial, sans-serif",
     });
@@ -964,12 +986,11 @@ function buildLabelBoxSvg(x, y, text, color, metrics = null) {
 
   return `
     ${svgRect(left, top, boxWidth, boxHeight, {
-      rx: 2,
-      ry: 2,
-      fill: COLORS.chartWhite,
+      rx: 2.4,
+      ry: 2.4,
+      fill: "rgba(255,255,255,0.98)",
       stroke: color,
-      "stroke-width": 0.8,
-      opacity: 0.96,
+      "stroke-width": 0.7,
     })}
     ${textLines}
   `;
@@ -983,8 +1004,8 @@ function buildLabelConnectorSvg(pointX, pointY, connectorX, connectorY, color) {
     return "";
   }
 
-  const markerClearance = Math.min(5.2, distance * 0.35);
-  const labelClearance = Math.min(2.2, distance * 0.16);
+  const markerClearance = Math.min(5.8, distance * 0.4);
+  const labelClearance = Math.min(2.4, distance * 0.18);
   const startX = pointX + ((dx / distance) * markerClearance);
   const startY = pointY + ((dy / distance) * markerClearance);
   const endX = connectorX - ((dx / distance) * labelClearance);
@@ -999,10 +1020,10 @@ function buildLabelConnectorSvg(pointX, pointY, connectorX, connectorY, color) {
     {
       fill: "none",
       stroke: color,
-      "stroke-width": 0.85,
+      "stroke-width": 0.7,
       "stroke-linecap": "round",
       "stroke-linejoin": "round",
-      opacity: 0.72,
+      opacity: 0.56,
     },
   );
 }
@@ -1139,6 +1160,13 @@ function buildPsplChartSvg(records) {
   return `
     <svg class="report-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-label="Pressão Sonora x Distância - ABNT NBR 9653:2018">
       ${svgRect(0, 0, width, height, { fill: COLORS.chartWhite })}
+      ${svgRect(margin.left, margin.top, plotWidth, plotHeight, {
+        fill: "#FCFDFE",
+        stroke: "#E6EBF1",
+        "stroke-width": 0.7,
+        rx: 2.2,
+        ry: 2.2,
+      })}
       ${svgText(width / 2, 11, "Pressão Sonora x Distância - ABNT NBR 9653:2018", {
         "text-anchor": "middle",
         "font-size": 6.4,
@@ -1156,31 +1184,38 @@ function buildPsplChartSvg(records) {
       })}
       ${svgLine(margin.left, limitY, margin.left + plotWidth, limitY, {
         stroke: COLORS.chartBrown,
-        "stroke-width": 1.4,
+        "stroke-width": 1.1,
+        "stroke-dasharray": "4 3",
       })}
-      ${svgRect(limitBoxLeft - 10, limitY - 5.4, 18, 11, {
+      ${svgRect(limitBoxLeft - 11, limitY - 5.1, 18, 10.4, {
         fill: COLORS.chartWhite,
-        stroke: "#111111",
-        "stroke-width": 0.6,
+        stroke: COLORS.chartBrown,
+        "stroke-width": 0.5,
+        rx: 1.4,
+        ry: 1.4,
       })}
-      ${svgText(limitBoxLeft - 1, limitY, "134", {
+      ${svgText(limitBoxLeft - 2, limitY, "134", {
         "text-anchor": "middle",
         "dominant-baseline": "middle",
-        "font-size": 5.8,
-        fill: "#666666",
+        "font-size": 5.4,
+        fill: COLORS.chartBrown,
         "font-family": "Helvetica, Arial, sans-serif",
+        "font-weight": 700,
       })}
-      ${svgRect(limitBoxRight - 10, limitY - 5.4, 18, 11, {
+      ${svgRect(limitBoxRight - 11, limitY - 5.1, 18, 10.4, {
         fill: COLORS.chartWhite,
-        stroke: "#111111",
-        "stroke-width": 0.6,
+        stroke: COLORS.chartBrown,
+        "stroke-width": 0.5,
+        rx: 1.4,
+        ry: 1.4,
       })}
-      ${svgText(limitBoxRight - 1, limitY, "134", {
+      ${svgText(limitBoxRight - 2, limitY, "134", {
         "text-anchor": "middle",
         "dominant-baseline": "middle",
-        "font-size": 5.8,
-        fill: "#666666",
+        "font-size": 5.4,
+        fill: COLORS.chartBrown,
         "font-family": "Helvetica, Arial, sans-serif",
+        "font-weight": 700,
       })}
       ${pointMarkup}
       ${labelMarkup}
@@ -1189,7 +1224,7 @@ function buildPsplChartSvg(records) {
       ${svgText(width - 14, height - 6, "N/D = sem distancia no PDF", {
         "text-anchor": "end",
         "dominant-baseline": "middle",
-        "font-size": 4.6,
+        "font-size": 4.3,
         fill: COLORS.chartAxis,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
@@ -1304,8 +1339,9 @@ function buildPpvChartSvg(records) {
     });
   }).join("");
 
-  const curve = curveX.map((value, index) => `${xPos(value).toFixed(2)},${yPos(curveY[index]).toFixed(2)}`).join(" ");
-  const curveMarkup = svgTag("polyline", { points: curve, fill: "none", stroke: COLORS.red, "stroke-width": 1.8 });
+  const curvePath = `M ${curveX
+    .map((value, index) => `${xPos(value).toFixed(2)} ${yPos(curveY[index]).toFixed(2)}`)
+    .join(" L ")}`;
 
   const guides = [4, 15, 40].map((value) => svgLine(xPos(value), margin.top, xPos(value), margin.top + plotHeight, {
     stroke: COLORS.red,
@@ -1342,6 +1378,13 @@ function buildPpvChartSvg(records) {
   return `
     <svg class="report-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-label="PPV x Limite ABNT">
       ${svgRect(0, 0, width, height, { fill: COLORS.chartWhite })}
+      ${svgRect(margin.left, margin.top, plotWidth, plotHeight, {
+        fill: "#FCFDFE",
+        stroke: "#E6EBF1",
+        "stroke-width": 0.7,
+        rx: 2.2,
+        ry: 2.2,
+      })}
       ${gridLines}
       ${guides}
       ${horizontalGuides}
@@ -1353,15 +1396,22 @@ function buildPpvChartSvg(records) {
         stroke: COLORS.chartAxis,
         "stroke-width": 0.8,
       })}
-      ${curveMarkup}
+      ${svgPath(curvePath, {
+        fill: "none",
+        stroke: COLORS.red,
+        "stroke-width": 1.35,
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
+      })}
       ${pointMarkup}
       ${labelMarkup}
       ${tickLabels}
       ${yTickLabels}
       ${svgText(limitLabelX, limitLabelY, "Limite ABNT", {
         "text-anchor": "end",
-        "font-size": 5.4,
+        "font-size": 5.2,
         fill: COLORS.red,
+        "font-weight": 700,
         "font-family": "Helvetica, Arial, sans-serif",
       })}
       ${svgText(width / 2, height - 2, "Frequência (Hz)", {
